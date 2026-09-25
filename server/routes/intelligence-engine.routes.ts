@@ -1,6 +1,6 @@
 /**
- * Intelligence API Routes
- * Comprehensive API for the Growth Intelligence Engine
+ * Intelligence Engine API Routes
+ * New comprehensive API for the Growth Intelligence Engine
  */
 
 import { Router, Request, Response, NextFunction } from 'express';
@@ -31,7 +31,7 @@ const batchIngestSchema = z.object({
 // ============ SOURCE MANAGEMENT ============
 
 /**
- * @route POST /api/v1/intelligence/sources/ingest
+ * @route POST /api/v1/intelligence-engine/sources/ingest
  * @desc Ingest a single source URL
  */
 router.post('/sources/ingest', validate(ingestSourceSchema), async (req: Request, res: Response, next: NextFunction) => {
@@ -47,7 +47,7 @@ router.post('/sources/ingest', validate(ingestSourceSchema), async (req: Request
 });
 
 /**
- * @route POST /api/v1/intelligence/sources/batch-ingest
+ * @route POST /api/v1/intelligence-engine/sources/batch-ingest
  * @desc Ingest multiple source URLs
  */
 router.post('/sources/batch-ingest', validate(batchIngestSchema), async (req: Request, res: Response, next: NextFunction) => {
@@ -63,7 +63,7 @@ router.post('/sources/batch-ingest', validate(batchIngestSchema), async (req: Re
 });
 
 /**
- * @route GET /api/v1/intelligence/sources
+ * @route GET /api/v1/intelligence-engine/sources
  * @desc List all sources for workspace
  */
 router.get('/sources', async (req: Request, res: Response, next: NextFunction) => {
@@ -82,7 +82,7 @@ router.get('/sources', async (req: Request, res: Response, next: NextFunction) =
 });
 
 /**
- * @route GET /api/v1/intelligence/sources/:id
+ * @route GET /api/v1/intelligence-engine/sources/:id
  * @desc Get source details with full analysis
  */
 router.get('/sources/:id', async (req: Request, res: Response, next: NextFunction) => {
@@ -98,7 +98,7 @@ router.get('/sources/:id', async (req: Request, res: Response, next: NextFunctio
 });
 
 /**
- * @route POST /api/v1/intelligence/sources/:id/process
+ * @route POST /api/v1/intelligence-engine/sources/:id/process
  * @desc Process a source (normalize, understand, extract claims/topics)
  */
 router.post('/sources/:id/process', async (req: Request, res: Response, next: NextFunction) => {
@@ -135,7 +135,7 @@ router.post('/sources/:id/process', async (req: Request, res: Response, next: Ne
 // ============ TOPICS ============
 
 /**
- * @route GET /api/v1/intelligence/topics
+ * @route GET /api/v1/intelligence-engine/topics
  * @desc List all topics for workspace
  */
 router.get('/topics', async (req: Request, res: Response, next: NextFunction) => {
@@ -152,7 +152,7 @@ router.get('/topics', async (req: Request, res: Response, next: NextFunction) =>
 });
 
 /**
- * @route GET /api/v1/intelligence/topics/:id
+ * @route GET /api/v1/intelligence-engine/topics/:id
  * @desc Get topic details
  */
 router.get('/topics/:id', async (req: Request, res: Response, next: NextFunction) => {
@@ -182,7 +182,7 @@ router.get('/topics/:id', async (req: Request, res: Response, next: NextFunction
 });
 
 /**
- * @route POST /api/v1/intelligence/topics/cluster
+ * @route POST /api/v1/intelligence-engine/topics/cluster
  * @desc Cluster topics
  */
 router.post('/topics/cluster', async (req: Request, res: Response, next: NextFunction) => {
@@ -197,7 +197,7 @@ router.post('/topics/cluster', async (req: Request, res: Response, next: NextFun
 // ============ TRENDS ============
 
 /**
- * @route GET /api/v1/intelligence/trends
+ * @route GET /api/v1/intelligence-engine/trends
  * @desc List trend signals
  */
 router.get('/trends', async (req: Request, res: Response, next: NextFunction) => {
@@ -214,7 +214,7 @@ router.get('/trends', async (req: Request, res: Response, next: NextFunction) =>
 });
 
 /**
- * @route POST /api/v1/intelligence/trends/detect
+ * @route POST /api/v1/intelligence-engine/trends/detect
  * @desc Detect trends for all topics
  */
 router.post('/trends/detect', async (req: Request, res: Response, next: NextFunction) => {
@@ -227,7 +227,7 @@ router.post('/trends/detect', async (req: Request, res: Response, next: NextFunc
 });
 
 /**
- * @route GET /api/v1/intelligence/trends/trending
+ * @route GET /api/v1/intelligence-engine/trends/trending
  * @desc Get trending topics
  */
 router.get('/trends/trending', async (req: Request, res: Response, next: NextFunction) => {
@@ -242,7 +242,7 @@ router.get('/trends/trending', async (req: Request, res: Response, next: NextFun
 // ============ OPPORTUNITIES ============
 
 /**
- * @route GET /api/v1/intelligence/opportunities
+ * @route GET /api/v1/intelligence-engine/opportunities
  * @desc List content opportunities
  */
 router.get('/opportunities', async (req: Request, res: Response, next: NextFunction) => {
@@ -261,7 +261,7 @@ router.get('/opportunities', async (req: Request, res: Response, next: NextFunct
 });
 
 /**
- * @route GET /api/v1/intelligence/opportunities/:id
+ * @route GET /api/v1/intelligence-engine/opportunities/:id
  * @desc Get opportunity details
  */
 router.get('/opportunities/:id', async (req: Request, res: Response, next: NextFunction) => {
@@ -277,7 +277,7 @@ router.get('/opportunities/:id', async (req: Request, res: Response, next: NextF
 });
 
 /**
- * @route POST /api/v1/intelligence/opportunities/generate
+ * @route POST /api/v1/intelligence-engine/opportunities/generate
  * @desc Generate opportunities from current intelligence
  */
 router.post('/opportunities/generate', async (req: Request, res: Response, next: NextFunction) => {
@@ -294,7 +294,7 @@ router.post('/opportunities/generate', async (req: Request, res: Response, next:
 });
 
 /**
- * @route PUT /api/v1/intelligence/opportunities/:id/status
+ * @route PUT /api/v1/intelligence-engine/opportunities/:id/status
  * @desc Update opportunity status
  */
 router.put('/opportunities/:id/status', async (req: Request, res: Response, next: NextFunction) => {
@@ -315,7 +315,7 @@ router.put('/opportunities/:id/status', async (req: Request, res: Response, next
 });
 
 /**
- * @route POST /api/v1/intelligence/opportunities/:id/convert
+ * @route POST /api/v1/intelligence-engine/opportunities/:id/convert
  * @desc Convert opportunity to content idea
  */
 router.post('/opportunities/:id/convert', async (req: Request, res: Response, next: NextFunction) => {
@@ -330,7 +330,7 @@ router.post('/opportunities/:id/convert', async (req: Request, res: Response, ne
 // ============ GAPS ============
 
 /**
- * @route GET /api/v1/intelligence/gaps
+ * @route GET /api/v1/intelligence-engine/gaps
  * @desc List content gaps
  */
 router.get('/gaps', async (req: Request, res: Response, next: NextFunction) => {
@@ -344,7 +344,7 @@ router.get('/gaps', async (req: Request, res: Response, next: NextFunction) => {
 });
 
 /**
- * @route POST /api/v1/intelligence/gaps/detect
+ * @route POST /api/v1/intelligence-engine/gaps/detect
  * @desc Detect content gaps
  */
 router.post('/gaps/detect', async (req: Request, res: Response, next: NextFunction) => {
@@ -359,7 +359,7 @@ router.post('/gaps/detect', async (req: Request, res: Response, next: NextFuncti
 // ============ SUMMARY ============
 
 /**
- * @route GET /api/v1/intelligence/summary
+ * @route GET /api/v1/intelligence-engine/summary
  * @desc Get intelligence summary
  */
 router.get('/summary', async (req: Request, res: Response, next: NextFunction) => {
@@ -372,7 +372,7 @@ router.get('/summary', async (req: Request, res: Response, next: NextFunction) =
 });
 
 /**
- * @route POST /api/v1/intelligence/process
+ * @route POST /api/v1/intelligence-engine/process
  * @desc Full pipeline: ingest → normalize → understand → cluster → detect → generate
  */
 router.post('/process', async (req: Request, res: Response, next: NextFunction) => {
@@ -396,7 +396,7 @@ router.post('/process', async (req: Request, res: Response, next: NextFunction) 
 });
 
 /**
- * @route POST /api/v1/intelligence/batch-process
+ * @route POST /api/v1/intelligence-engine/batch-process
  * @desc Batch process multiple sources
  */
 router.post('/batch-process', validate(batchIngestSchema), async (req: Request, res: Response, next: NextFunction) => {

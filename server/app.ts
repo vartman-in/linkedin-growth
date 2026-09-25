@@ -17,6 +17,7 @@ import contentIdeasRoutes from './routes/content-ideas.routes';
 import leadRoutes from './routes/lead.routes';
 import salesMachineRoutes from './routes/sales-machine.routes';
 import intelligenceRoutes from './routes/intelligence.routes';
+import intelligenceEngineRoutes from './routes/intelligence-engine.routes';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -51,6 +52,7 @@ app.use('/api/v1/content-ideas', contentIdeasRoutes);
 app.use('/api/v1/leads', leadRoutes);
 app.use('/api/v1/sales', salesMachineRoutes);
 app.use('/api/v1/intelligence', intelligenceRoutes);
+app.use('/api/v1/intelligence-engine', intelligenceEngineRoutes);
 
 // Root route
 app.get('/', (req, res) => {

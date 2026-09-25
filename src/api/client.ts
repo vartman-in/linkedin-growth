@@ -345,6 +345,108 @@ export const intelligenceApi = {
     request<any[]>('/intelligence/lead-recommendations'),
 };
 
+// ============ INTELLIGENCE ENGINE API ============
+
+export const intelligenceEngineApi = {
+  // Source Management
+  ingestSource: (url: string) =>
+    request<any>('/intelligence-engine/sources/ingest', {
+      method: 'POST',
+      body: JSON.stringify({ url }),
+    }),
+  
+  batchIngest: (urls: string[]) =>
+    request<any>('/intelligence-engine/sources/batch-ingest', {
+      method: 'POST',
+      body: JSON.stringify({ urls }),
+    }),
+  
+  getSources: (limit?: number, offset?: number) =>
+    request<any[]>(`/intelligence-engine/sources${limit ? `?limit=${limit}` : ''}${offset ? `&offset=${offset}` : ''}`),
+  
+  getSource: (id: string) =>
+    request<any>(`/intelligence-engine/sources/${id}`),
+  
+  processSource: (id: string) =>
+    request<any>(`/intelligence-engine/sources/${id}/process`, {
+      method: 'POST',
+    }),
+  
+  // Topics
+  getTopics: (limit?: number) =>
+    request<any[]>(`/intelligence-engine/topics${limit ? `?limit=${limit}` : ''}`),
+  
+  getTopic: (id: string) =>
+    request<any>(`/intelligence-engine/topics/${id}`),
+  
+  clusterTopics: () =>
+    request<any[]>('/intelligence-engine/topics/cluster', {
+      method: 'POST',
+    }),
+  
+  // Trends
+  getTrends: (limit?: number) =>
+    request<any[]>(`/intelligence-engine/trends${limit ? `?limit=${limit}` : ''}`),
+  
+  detectTrends: () =>
+    request<any[]>('/intelligence-engine/trends/detect', {
+      method: 'POST',
+    }),
+  
+  getTrendingTopics: () =>
+    request<any[]>('/intelligence-engine/trends/trending'),
+  
+  // Opportunities
+  getOpportunities: (status?: string, limit?: number) =>
+    request<any[]>(`/intelligence-engine/opportunities${status ? `?status=${status}` : ''}${limit ? `&limit=${limit}` : ''}`),
+  
+  getOpportunity: (id: string) =>
+    request<any>(`/intelligence-engine/opportunities/${id}`),
+  
+  generateOpportunities: (profile?: any, icp?: any) =>
+    request<any[]>('/intelligence-engine/opportunities/generate', {
+      method: 'POST',
+      body: JSON.stringify({ profile, icp }),
+    }),
+  
+  updateOpportunityStatus: (id: string, status: string) =>
+    request<any>(`/intelligence-engine/opportunities/${id}/status`, {
+      method: 'PUT',
+      body: JSON.stringify({ status }),
+    }),
+  
+  convertOpportunityToIdea: (id: string) =>
+    request<any>(`/intelligence-engine/opportunities/${id}/convert`, {
+      method: 'POST',
+    }),
+  
+  // Gaps
+  getGaps: (limit?: number) =>
+    request<any[]>(`/intelligence-engine/gaps${limit ? `?limit=${limit}` : ''}`),
+  
+  detectGaps: () =>
+    request<any[]>('/intelligence-engine/gaps/detect', {
+      method: 'POST',
+    }),
+  
+  // Summary
+  getSummary: () =>
+    request<any>('/intelligence-engine/summary'),
+  
+  // Full Pipeline
+  processUrl: (url: string, profile?: any, icp?: any) =>
+    request<any>('/intelligence-engine/process', {
+      method: 'POST',
+      body: JSON.stringify({ url, profile, icp }),
+    }),
+  
+  batchProcess: (urls: string[], profile?: any, icp?: any) =>
+    request<any>('/intelligence-engine/batch-process', {
+      method: 'POST',
+      body: JSON.stringify({ urls, profile, icp }),
+    }),
+};
+
 // ============ HEALTH API ============
 
 export const healthApi = {
