@@ -5,13 +5,13 @@
 
 import { Router, Request, Response, NextFunction } from 'express';
 import { SharedIntelligenceService } from '../services/shared-intelligence.service';
-import { devWorkspaceContext, requireWorkspaceAccess } from '../middleware/workspace.middleware';
+import { authenticateAndSetWorkspace, requireWorkspaceAccess } from '../middleware/workspace.middleware';
 
 const router = Router();
 const sharedIntelligenceService = new SharedIntelligenceService(null as any);
 
-// Apply dev workspace context to all routes
-router.use(devWorkspaceContext);
+// Apply secure authentication to all routes
+router.use(authenticateAndSetWorkspace);
 router.use(requireWorkspaceAccess);
 
 /**

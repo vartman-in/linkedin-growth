@@ -3,15 +3,15 @@ import { ProfileRepository } from '../repositories/profile.repository';
 import { getPool } from '../config/database';
 import { validate } from '../middleware/validation.middleware';
 import { createProfileSchema, updateProfileSchema } from '../middleware/validation.middleware';
-import { devWorkspaceContext, requireWorkspaceAccess } from '../middleware/workspace.middleware';
+import { authenticateAndSetWorkspace, requireWorkspaceAccess } from '../middleware/workspace.middleware';
 import { NotFoundError } from '../middleware/error.middleware';
 
 const router = Router();
 const pool = getPool();
 const profileRepo = new ProfileRepository(pool);
 
-// Apply dev workspace context to all routes
-router.use(devWorkspaceContext);
+// Apply secure authentication to all routes
+router.use(authenticateAndSetWorkspace);
 router.use(requireWorkspaceAccess);
 
 /**

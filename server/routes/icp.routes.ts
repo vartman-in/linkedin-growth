@@ -3,15 +3,15 @@ import { ICPRepository } from '../repositories/icp.repository';
 import { getPool } from '../config/database';
 import { validate, validateParams } from '../middleware/validation.middleware';
 import { createICPSchema, updateICPSchema, uuidParamSchema } from '../middleware/validation.middleware';
-import { devWorkspaceContext, requireWorkspaceAccess } from '../middleware/workspace.middleware';
+import { authenticateAndSetWorkspace, requireWorkspaceAccess } from '../middleware/workspace.middleware';
 import { NotFoundError } from '../middleware/error.middleware';
 
 const router = Router();
 const pool = getPool();
 const icpRepo = new ICPRepository(pool);
 
-// Apply dev workspace context to all routes
-router.use(devWorkspaceContext);
+// Apply secure authentication to all routes
+router.use(authenticateAndSetWorkspace);
 router.use(requireWorkspaceAccess);
 
 /**
