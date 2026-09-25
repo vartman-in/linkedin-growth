@@ -1,19 +1,76 @@
-import { useApp } from '../store';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../auth/AuthContext';
+import { useWorkspace } from '../workspace/WorkspaceContext';
+import { profileApi, icpApi, contentIdeasApi, contentDraftsApi, leadsApi, conversationsApi, pipelineApi } from '../api/client';
 import {
   FileText, Users, MessageSquare, ArrowRight,
   CheckCircle2, Lightbulb, Target, Settings,
-  Zap, User, Link2
+  Zap, User, Link2, Loader
 } from 'lucide-react';
 
 export default function HomePage() {
-  const { state, dispatch } = useApp();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { activeWorkspace } = useWorkspace();
+  
+  const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = useState<any>(null);
+  const [icps, setIcps] = useState<any[]>([]);
+  const [ideas, setIdeas] = useState<any[]>([]);
+  const [drafts, setDrafts] = useState<any[]>([]);
+  const [leads, setLeads] = useState<any[]>([]);
+  const [conversations, setConversations] = useState<any[]>([]);
+  const [opportunities, setOpportunities] = useState<any[]>([]);
 
-  const hasProfile = state.voiceProfile.tone.length > 0;
-  const hasICP = state.icp.roles.length > 0;
-  const hasPillars = state.pillars.length > 0;
-  const hasContent = state.ideas.length > 0;
-  const hasProspects = state.prospects.length > 0;
-  const hasConversations = state.conversations.length > 0;
+  useEffect(() => {
+    loadData();
+  }, [activeWorkspace]);
+
+  const loadData = async () => {
+    if (!activeWorkspace) return;
+    
+    try {
+      setLoading(true);
+      
+      // Load all data in parallel
+      const [profileData, icpsData, ideasData, draftsData, leadsData, conversationsData, opportunitiesData] = await Promise.allSettled([
+        profileApi.getMe(),
+        icpApi.getAll(),
+        contentIdeasApi.getAll(),
+        contentDraftsApi.getAll(),
+        leadsApi.getAll(),
+        conversationsApi.getAll(),
+        pipelineApi.getAll()
+      ]);
+
+      setProfile(profileData.status === 'fulfilled' ? profileData.value : null);
+      setIcps(icpsData.status === 'fulfilled' ? icpsData.value : []);
+      setIdeas(ideasData.status === 'fulfilled' ? ideasData.value : []);
+      setDrafts(draftsData.status === 'fulfilled' ? draftsData.value : []);
+      setLeads(leadsData.status === 'fulfilled' ? leadsData.value : []);
+      setConversations(conversationsData.status === 'fulfilled' ? conversationsData.value : []);
+      setOpportunities(opportunitiesData.status === 'fulfilled' ? opportunitiesData.value : []);
+    } catch (error) {
+      console.error('Failed to load dashboard data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  const hasProfile = profile && (profile.display_name || profile.headline);
+  const hasICP = icps.length > 0;
+  const hasContent = ideas.length > 0;
+  const hasLeads = leads.length > 0;
+  const hasConversations = conversations.length > 0;
 
   // Setup actions - only show what's actually needed
   const setupActions = [
@@ -25,7 +82,7 @@ export default function HomePage() {
       color: 'text-primary',
       bg: 'bg-primary-light',
       done: hasProfile,
-      action: () => dispatch({ type: 'SET_PAGE', page: 'settings' })
+      action: () => navigate('/settings')
     },
     {
       id: 'icp',
@@ -35,17 +92,7 @@ export default function HomePage() {
       color: 'text-accent',
       bg: 'bg-accent-light',
       done: hasICP,
-      action: () => dispatch({ type: 'SET_PAGE', page: 'settings' })
-    },
-    {
-      id: 'pillars',
-      title: 'Set content pillars',
-      reason: 'Pillars define your content themes and keep your messaging focused.',
-      icon: Lightbulb,
-      color: 'text-warning',
-      bg: 'bg-warning-light',
-      done: hasPillars,
-      action: () => dispatch({ type: 'SET_PAGE', page: 'settings' })
+      action: () => navigate('/settings')
     },
     {
       id: 'content',
@@ -55,13 +102,13 @@ export default function HomePage() {
       color: 'text-success',
       bg: 'bg-success-light',
       done: hasContent,
-      action: () => dispatch({ type: 'SET_PAGE', page: 'content' })
+      action: () => navigate('/content')
     }
   ];
 
   // Real workspace status counts
-  const contentReady = state.drafts.filter(d => d.status === 'review').length;
-  const unreadConversations = state.conversations.filter(c => c.unread).length;
+  const draftsForReview = drafts.filter((d: any) => d.status === 'IN_REVIEW').length;
+  const unreadConversations = conversations.filter((c: any) => c.unread).length;
 
   return (
     <div className="max-w-6xl mx-auto animate-fade-in">
@@ -69,7 +116,7 @@ export default function HomePage() {
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">Welcome to Growth Operator</h1>
         <p className="text-gray-500 mt-1">
-          Complete your workspace setup to start building your LinkedIn growth system.
+          {user?.name ? `Hello, ${user.name}! ` : ''}Complete your workspace setup to start building your LinkedIn growth system.
         </p>
       </div>
 
@@ -86,11 +133,11 @@ export default function HomePage() {
             <div className="space-y-2">
               <div className="flex items-center justify-between py-1.5">
                 <span className="text-sm text-gray-700">Ideas</span>
-                <span className="text-sm font-semibold text-gray-900">{state.ideas.length}</span>
+                <span className="text-sm font-semibold text-gray-900">{ideas.length}</span>
               </div>
               <div className="flex items-center justify-between py-1.5">
                 <span className="text-sm text-gray-700">Drafts ready for review</span>
-                <span className="text-sm font-semibold text-gray-900">{contentReady}</span>
+                <span className="text-sm font-semibold text-gray-900">{draftsForReview}</span>
               </div>
             </div>
           ) : (
@@ -105,19 +152,19 @@ export default function HomePage() {
             </div>
             <h3 className="font-semibold text-gray-800">Sales</h3>
           </div>
-          {hasProspects ? (
+          {hasLeads ? (
             <div className="space-y-2">
               <div className="flex items-center justify-between py-1.5">
-                <span className="text-sm text-gray-700">Prospects</span>
-                <span className="text-sm font-semibold text-gray-900">{state.prospects.length}</span>
+                <span className="text-sm text-gray-700">Leads</span>
+                <span className="text-sm font-semibold text-gray-900">{leads.length}</span>
               </div>
               <div className="flex items-center justify-between py-1.5">
-                <span className="text-sm text-gray-700">Unread conversations</span>
-                <span className="text-sm font-semibold text-gray-900">{unreadConversations}</span>
+                <span className="text-sm text-gray-700">Opportunities</span>
+                <span className="text-sm font-semibold text-gray-900">{opportunities.length}</span>
               </div>
             </div>
           ) : (
-            <p className="text-sm text-gray-500">No prospects yet. Configure your ICP to discover relevant prospects.</p>
+            <p className="text-sm text-gray-500">No leads yet. Configure your ICP to discover relevant prospects.</p>
           )}
         </div>
 
@@ -132,7 +179,7 @@ export default function HomePage() {
             <div className="space-y-2">
               <div className="flex items-center justify-between py-1.5">
                 <span className="text-sm text-gray-700">Conversations</span>
-                <span className="text-sm font-semibold text-gray-900">{state.conversations.length}</span>
+                <span className="text-sm font-semibold text-gray-900">{conversations.length}</span>
               </div>
               <div className="flex items-center justify-between py-1.5">
                 <span className="text-sm text-gray-700">Unread</span>
@@ -208,11 +255,11 @@ export default function HomePage() {
               <div className="w-2 h-2 rounded-full bg-gray-300" />
               <span className="text-sm text-gray-700">AI Provider</span>
             </div>
-            <span className="text-xs text-gray-500">Not configured — required for content generation</span>
+            <span className="text-xs text-gray-500">Configured on server — required for content generation</span>
           </div>
         </div>
         <p className="text-xs text-gray-500 mt-3">
-          Integrations will be available in a future phase. For now, you can configure your profile, ICP, and content pillars.
+          LinkedIn integration will be available in a future phase. The AI provider is configured on the backend.
         </p>
       </div>
     </div>

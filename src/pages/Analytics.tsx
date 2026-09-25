@@ -1,12 +1,8 @@
-import { useApp } from '../store';
+import { useWorkspace } from '../workspace/WorkspaceContext';
 import { Eye, FileText, Users, MessageSquare, Target, ArrowUpRight } from 'lucide-react';
 
 export default function AnalyticsPage() {
-  const { state } = useApp();
-
-  const hasContent = state.ideas.length > 0 || state.drafts.length > 0;
-  const hasProspects = state.prospects.length > 0;
-  const hasPublished = state.drafts.some(d => d.status === 'approved');
+  const { activeWorkspace } = useWorkspace();
 
   return (
     <div className="max-w-6xl mx-auto animate-fade-in">
@@ -96,8 +92,8 @@ export default function AnalyticsPage() {
           </h4>
           <div className="space-y-2">
             {[
-              'Prospects discovered',
-              'Qualified prospects',
+              'Leads discovered',
+              'Qualified leads',
               'Response rate',
               'Meetings booked',
               'Pipeline distribution'

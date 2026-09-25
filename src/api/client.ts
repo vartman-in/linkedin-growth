@@ -132,7 +132,15 @@ export const workspaceApi = {
 // ============ PROFILE API ============
 
 export const profileApi = {
+  getAll: () => request<any[]>('/profiles'),
+  
   getMe: () => request<any>('/profiles/me'),
+  
+  create: (data: any) =>
+    request<any>('/profiles', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
   
   updateMe: (data: any) =>
     request<any>('/profiles/me', {
@@ -271,6 +279,8 @@ export const leadsApi = {
 // ============ CONVERSATIONS API ============
 
 export const conversationsApi = {
+  getAll: () => request<any[]>('/sales/conversations'),
+  
   create: (leadId: string, channel: string) =>
     request<any>('/sales/conversations', {
       method: 'POST',
