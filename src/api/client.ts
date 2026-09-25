@@ -51,6 +51,17 @@ async function request<T>(
 
     if (!response.ok) {
       const data = await response.json().catch(() => ({}));
+      
+      // Handle 401 Unauthorized - redirect to login
+      if (response.status === 401) {
+        localStorage.removeItem('auth_token');
+        authToken = null;
+        // Only redirect if not already on login page
+        if (!window.location.pathname.includes('/login')) {
+          window.location.href = '/login';
+        }
+      }
+      
       throw new ApiError(response.status, data);
     }
 

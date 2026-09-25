@@ -1,51 +1,113 @@
-import { ReactNode } from 'react';
-import { useApp } from '../store';
+import { ReactNode, useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../auth/AuthContext';
+import { useWorkspace } from '../workspace/WorkspaceContext';
+import WorkspaceSelector from './WorkspaceSelector';
 import {
   Home, FileText, Users, MessageSquare, GitBranch,
-  BarChart3, Settings, Zap, Bell, X
+  BarChart3, Settings, Zap, Bell, LogOut, ChevronDown
 } from 'lucide-react';
 
 const navItems = [
-  { id: 'home', label: 'Home', icon: Home },
-  { id: 'brain', label: 'Brain', icon: Zap },
-  { id: 'content', label: 'Content', icon: FileText },
-  { id: 'leads', label: 'Leads', icon: Users },
-  { id: 'inbox', label: 'Inbox', icon: MessageSquare },
-  { id: 'pipeline', label: 'Pipeline', icon: GitBranch },
-  { id: 'analytics', label: 'Analytics', icon: BarChart3 },
-  { id: 'settings', label: 'Settings', icon: Settings },
+  { id: 'home', path: '/home', label: 'Home', icon: Home },
+  { id: 'brain', path: '/brain', label: 'Brain', icon: Zap },
+  { id: 'content', path: '/content', label: 'Content', icon: FileText },
+  { id: 'leads', path: '/leads', label: 'Leads', icon: Users },
+  { id: 'inbox', path: '/inbox', label: 'Inbox', icon: MessageSquare },
+  { id: 'pipeline', path: '/pipeline', label: 'Pipeline', icon: GitBranch },
+  { id: 'analytics', path: '/analytics', label: 'Analytics', icon: BarChart3 },
+  { id: 'settings', path: '/settings', label: 'Settings', icon: Settings },
 ];
 
 export default function Layout({ children }: { children: ReactNode }) {
-  const { state, dispatch } = useApp();
-  const unreadCount = state.conversations.filter(c => c.unread).length;
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { user, logout } = useAuth();
+  const { workspaces, activeWorkspace, setActiveWorkspace, loading: workspaceLoading } = useWorkspace();
+  const [showWorkspaceDropdown, setShowWorkspaceDropdown] = useState(false);
+  
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
+  const currentPage = location.pathname.substring(1) || 'home';
+
+  // Show workspace selector if no active workspace
+  if (!workspaceLoading && !activeWorkspace) {
+    return <WorkspaceSelector />;
+  }
+
+  // Show loading state while workspace is loading
+  if (workspaceLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading workspace...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
       <aside className="w-64 bg-sidebar flex flex-col shadow-xl">
-        {/* Logo */}
+        {/* Logo & Workspace Selector */}
         <div className="p-5 border-b border-white/10">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 mb-3">
             <div className="w-9 h-9 bg-primary rounded-lg flex items-center justify-center">
               <Zap className="w-5 h-5 text-white" />
             </div>
-            <div>
+            <div className="flex-1">
               <h1 className="text-white font-bold text-sm">Growth Operator</h1>
               <p className="text-gray-400 text-xs">LinkedIn OS</p>
             </div>
           </div>
+          
+          {/* Workspace Switcher */}
+          {workspaces.length > 0 && (
+            <div className="relative">
+              <button
+                onClick={() => setShowWorkspaceDropdown(!showWorkspaceDropdown)}
+                className="w-full flex items-center justify-between gap-2 px-3 py-2 bg-sidebar-hover rounded-lg text-sm text-white hover:bg-sidebar-active transition-colors"
+              >
+                <span className="truncate">{activeWorkspace?.name || 'Select Workspace'}</span>
+                <ChevronDown className="w-4 h-4 flex-shrink-0" />
+              </button>
+              
+              {showWorkspaceDropdown && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                  {workspaces.map(workspace => (
+                    <button
+                      key={workspace.id}
+                      onClick={() => {
+                        setActiveWorkspace(workspace);
+                        setShowWorkspaceDropdown(false);
+                      }}
+                      className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 transition-colors ${
+                        activeWorkspace?.id === workspace.id ? 'bg-primary-light text-primary font-medium' : 'text-gray-700'
+                      }`}
+                    >
+                      {workspace.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Navigation */}
         <nav className="flex-1 py-4 px-3">
           {navItems.map(item => {
             const Icon = item.icon;
-            const isActive = state.currentPage === item.id;
+            const isActive = location.pathname === item.path;
             return (
               <button
                 key={item.id}
-                onClick={() => dispatch({ type: 'SET_PAGE', page: item.id })}
+                onClick={() => navigate(item.path)}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg mb-1 transition-all text-sm font-medium
                   ${isActive
                     ? 'bg-sidebar-active text-white shadow-lg'
@@ -54,11 +116,6 @@ export default function Layout({ children }: { children: ReactNode }) {
               >
                 <Icon className="w-4.5 h-4.5" />
                 <span>{item.label}</span>
-                {item.id === 'inbox' && unreadCount > 0 && (
-                  <span className="ml-auto bg-primary text-white text-xs px-1.5 py-0.5 rounded-full">
-                    {unreadCount}
-                  </span>
-                )}
               </button>
             );
           })}
@@ -66,17 +123,23 @@ export default function Layout({ children }: { children: ReactNode }) {
 
         {/* User */}
         <div className="p-4 border-t border-white/10">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+              <span className="text-white text-sm font-medium">
+                {user?.name?.charAt(0).toUpperCase() || 'U'}
+              </span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-white text-sm font-medium truncate">{user?.name || 'User'}</p>
+              <p className="text-gray-400 text-xs truncate">{user?.email || ''}</p>
+            </div>
+          </div>
           <button
-            onClick={() => dispatch({ type: 'SET_PAGE', page: 'settings' })}
-            className="w-full flex items-center gap-3 hover:bg-sidebar-hover rounded-lg p-1 -m-1 transition-colors"
+            onClick={handleLogout}
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-sidebar-hover transition-colors"
           >
-            <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center">
-              <Settings className="w-4 h-4 text-gray-300" />
-            </div>
-            <div className="text-left">
-              <p className="text-white text-sm font-medium">Set up profile</p>
-              <p className="text-gray-400 text-xs">Configure workspace</p>
-            </div>
+            <LogOut className="w-4 h-4" />
+            <span>Logout</span>
           </button>
         </div>
       </aside>
@@ -87,40 +150,15 @@ export default function Layout({ children }: { children: ReactNode }) {
         <header className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-6 shrink-0">
           <div className="flex items-center gap-2">
             <h2 className="text-lg font-semibold text-gray-800">
-              {navItems.find(n => n.id === state.currentPage)?.label || 'Dashboard'}
+              {navItems.find(n => n.id === currentPage)?.label || 'Dashboard'}
             </h2>
           </div>
           <div className="flex items-center gap-3">
-            <button className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors">
-              <Bell className="w-5 h-5 text-gray-500" />
-              {state.notifications.length > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-danger text-white text-[10px] rounded-full flex items-center justify-center">
-                  {state.notifications.length}
-                </span>
-              )}
-            </button>
-            <div className="h-6 w-px bg-gray-200" />
             <span className="text-sm text-gray-500">
               {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
             </span>
           </div>
         </header>
-
-        {/* Notifications Bar */}
-        {state.notifications.length > 0 && (
-          <div className="bg-primary-light border-b border-primary/20 px-6 py-2 flex items-center gap-3">
-            <Bell className="w-4 h-4 text-primary" />
-            <p className="text-sm text-primary-dark font-medium flex-1">
-              {state.notifications[0].message}
-            </p>
-            <button
-              onClick={() => dispatch({ type: 'DISMISS_NOTIFICATION', id: state.notifications[0].id })}
-              className="text-primary hover:text-primary-dark"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-        )}
 
         {/* Page Content */}
         <main className="flex-1 overflow-auto p-6">
