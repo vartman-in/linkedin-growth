@@ -1,16 +1,11 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
-import { Pool } from 'pg';
 import { WorkspaceRepository, UserRepository, WorkspaceMemberRepository } from '../server/repositories/workspace.repository';
 import { ProfileRepository } from '../server/repositories/profile.repository';
 import { ICPRepository } from '../server/repositories/icp.repository';
 import { ContentIdeaRepository } from '../server/repositories/content-idea.repository';
 import { ContentDraftRepository } from '../server/repositories/content-draft.repository';
 import { LeadRepository } from '../server/repositories/lead.repository';
-
-// Use test database
-const testPool = new Pool({
-  connectionString: process.env.DATABASE_URL_TEST || 'postgresql://postgres:postgres@localhost:5432/growth_operator_test',
-});
+import { testPool, runMigrations, cleanup } from './setup';
 
 describe('Phase 1 Backend Foundation', () => {
   let workspaceRepo: WorkspaceRepository;
@@ -28,6 +23,9 @@ describe('Phase 1 Backend Foundation', () => {
   let user2Id: string;
 
   beforeAll(async () => {
+    // Run migrations against in-memory database
+    await runMigrations();
+    
     workspaceRepo = new WorkspaceRepository(testPool);
     userRepo = new UserRepository(testPool);
     memberRepo = new WorkspaceMemberRepository(testPool);
@@ -39,25 +37,13 @@ describe('Phase 1 Backend Foundation', () => {
   });
 
   beforeEach(async () => {
-    // Clean up test data
-    await testPool.query('DELETE FROM audit_log');
-    await testPool.query('DELETE FROM learning_signals');
-    await testPool.query('DELETE FROM analytics_events');
-    await testPool.query('DELETE FROM pipeline_opportunities');
-    await testPool.query('DELETE FROM messages');
-    await testPool.query('DELETE FROM conversations');
-    await testPool.query('DELETE FROM leads');
-    await testPool.query('DELETE FROM content_drafts');
-    await testPool.query('DELETE FROM content_ideas');
-    await testPool.query('DELETE FROM icps');
-    await testPool.query('DELETE FROM profiles');
-    await testPool.query('DELETE FROM workspace_members');
-    await testPool.query('DELETE FROM users');
-    await testPool.query('DELETE FROM workspaces');
+    // Clean up test data using in-memory database cleanup
+    await cleanup();
+    await runMigrations();
   });
 
   afterAll(async () => {
-    await testPool.end();
+    // No cleanup needed for in-memory database
   });
 
   describe('Health Check', () => {
