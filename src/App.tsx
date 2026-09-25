@@ -1,6 +1,7 @@
 import { AppProvider, useApp } from './store';
 import Layout from './components/Layout';
 import HomePage from './pages/Home';
+import BrainPage from './pages/Brain';
 import ContentPage from './pages/Content';
 import LeadsPage from './pages/Leads';
 import InboxPage from './pages/Inbox';
@@ -14,6 +15,7 @@ function AppContent() {
   const renderPage = () => {
     switch (state.currentPage) {
       case 'home': return <HomePage />;
+      case 'brain': return <BrainPage />;
       case 'content': return <ContentPage />;
       case 'leads': return <LeadsPage />;
       case 'inbox': return <InboxPage />;

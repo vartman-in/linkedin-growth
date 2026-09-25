@@ -7,6 +7,7 @@ import {
 
 const navItems = [
   { id: 'home', label: 'Home', icon: Home },
+  { id: 'brain', label: 'Brain', icon: Zap },
   { id: 'content', label: 'Content', icon: FileText },
   { id: 'leads', label: 'Leads', icon: Users },
   { id: 'inbox', label: 'Inbox', icon: MessageSquare },

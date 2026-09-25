@@ -2,7 +2,7 @@ import { useApp } from '../store';
 import {
   FileText, Users, MessageSquare, ArrowRight,
   TrendingUp, AlertCircle, CheckCircle2, Clock,
-  Lightbulb, Target, Zap
+  Lightbulb, Target, Zap, Brain
 } from 'lucide-react';
 
 export default function HomePage() {
@@ -182,6 +182,49 @@ export default function HomePage() {
         </div>
       </div>
 
+      {/* Brain Learning Summary */}
+      <div className="bg-gradient-to-br from-primary/5 to-accent/5 rounded-xl border border-primary/10 p-6 mb-6">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Zap className="w-5 h-5 text-primary" />
+            <h3 className="font-semibold text-gray-800">Brain Intelligence</h3>
+          </div>
+          <button
+            onClick={() => dispatch({ type: 'SET_PAGE', page: 'brain' })}
+            className="text-xs text-primary font-medium hover:text-primary-dark flex items-center gap-1"
+          >
+            View Full Report <ArrowRight className="w-3 h-3" />
+          </button>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+          <div className="bg-white/70 rounded-lg p-3 text-center">
+            <div className="text-lg font-bold text-primary">{state.brainMetrics.researchBrain.opportunitiesFound}</div>
+            <div className="text-[10px] text-gray-500">Opportunities Found</div>
+          </div>
+          <div className="bg-white/70 rounded-lg p-3 text-center">
+            <div className="text-lg font-bold text-accent">{state.brainMetrics.learningBrain.patternsLearned}</div>
+            <div className="text-[10px] text-gray-500">Patterns Learned</div>
+          </div>
+          <div className="bg-white/70 rounded-lg p-3 text-center">
+            <div className="text-lg font-bold text-success">{state.brainMetrics.analyticsBrain.avgPerformanceScore}</div>
+            <div className="text-[10px] text-gray-500">Avg Performance</div>
+          </div>
+          <div className="bg-white/70 rounded-lg p-3 text-center">
+            <div className="text-lg font-bold text-warning">{state.brainMetrics.learningBrain.confidenceLevel}</div>
+            <div className="text-[10px] text-gray-500">Confidence Level</div>
+          </div>
+        </div>
+        <div className="bg-white/50 rounded-lg p-3">
+          <p className="text-xs font-medium text-gray-700 mb-1">🧠 Top Pattern This Week</p>
+          <p className="text-xs text-gray-600">
+            {state.learnedPatterns[0]?.observation || 'No patterns learned yet.'}
+          </p>
+          <p className="text-[10px] text-gray-400 mt-1">
+            Confidence: {state.learnedPatterns[0]?.confidence} • Evidence: {state.learnedPatterns[0]?.sampleSize} posts
+          </p>
+        </div>
+      </div>
+
       {/* Operating Loop */}
       <div className="bg-gradient-to-br from-primary/5 to-accent/5 rounded-xl border border-primary/10 p-6">
         <div className="flex items-center gap-2 mb-3">
@@ -189,18 +232,18 @@ export default function HomePage() {
           <h3 className="font-semibold text-gray-800">Operating Loop Status</h3>
         </div>
         <div className="flex flex-wrap gap-2">
-          {['Observe', 'Understand', 'Decide', 'Prepare', 'Verify', 'Review', 'Execute', 'Measure', 'Learn'].map((step, idx) => (
+          {['Research', 'Score', 'Select', 'Create', 'Publish', 'Measure', 'Learn', 'Improve'].map((step, idx) => (
             <div key={step} className="flex items-center gap-2">
               <span className={`text-xs px-2.5 py-1 rounded-full font-medium
-                ${idx < 5 ? 'bg-success-light text-success' : idx === 5 ? 'bg-warning-light text-warning' : 'bg-gray-100 text-gray-500'}`}>
+                ${idx < 4 ? 'bg-success-light text-success' : idx === 4 ? 'bg-warning-light text-warning' : 'bg-gray-100 text-gray-500'}`}>
                 {step}
               </span>
-              {idx < 8 && <span className="text-gray-300">→</span>}
+              {idx < 7 && <span className="text-gray-300">→</span>}
             </div>
           ))}
         </div>
         <p className="text-xs text-gray-500 mt-3">
-          Content pipeline is in <strong>Verify</strong> stage. Sales pipeline is in <strong>Prepare</strong> stage.
+          Content pipeline is in <strong>Publish</strong> stage. Learning brain is analyzing last week's performance.
         </p>
       </div>
     </div>

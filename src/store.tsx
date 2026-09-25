@@ -2,8 +2,12 @@ import React, { createContext, useContext, useReducer, ReactNode } from 'react';
 import {
   ContentIdea, ContentDraft, Prospect, Conversation,
   VoiceProfile, ICPProfile, ContentPillar, CarouselSlide,
+  AudienceSegment, ContentOpportunity, PostDNA, LearnedPattern,
+  Experiment, WeeklyLearningReport, BrainMetrics,
   mockContentIdeas, mockDrafts, mockProspects, mockConversations,
-  mockVoiceProfile, mockICP, mockPillars, mockCarouselSlides
+  mockVoiceProfile, mockICP, mockPillars, mockCarouselSlides,
+  mockAudienceSegments, mockContentOpportunities, mockPostDNA,
+  mockLearnedPatterns, mockExperiments, mockWeeklyReport, mockBrainMetrics
 } from './data';
 
 interface AppState {
@@ -15,6 +19,14 @@ interface AppState {
   icp: ICPProfile;
   pillars: ContentPillar[];
   carouselSlides: CarouselSlide[];
+  // Brain System
+  audienceSegments: AudienceSegment[];
+  contentOpportunities: ContentOpportunity[];
+  postDNA: PostDNA[];
+  learnedPatterns: LearnedPattern[];
+  experiments: Experiment[];
+  weeklyReport: WeeklyLearningReport;
+  brainMetrics: BrainMetrics;
   currentPage: string;
   selectedIdea: string | null;
   selectedDraft: string | null;
@@ -56,6 +68,14 @@ const initialState: AppState = {
   icp: mockICP,
   pillars: mockPillars,
   carouselSlides: mockCarouselSlides,
+  // Brain System
+  audienceSegments: mockAudienceSegments,
+  contentOpportunities: mockContentOpportunities,
+  postDNA: mockPostDNA,
+  learnedPatterns: mockLearnedPatterns,
+  experiments: mockExperiments,
+  weeklyReport: mockWeeklyReport,
+  brainMetrics: mockBrainMetrics,
   currentPage: 'home',
   selectedIdea: null,
   selectedDraft: null,

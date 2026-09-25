@@ -541,3 +541,611 @@ export const mockPillars: ContentPillar[] = [
     preferredFormats: ['text post', 'checklist', 'comparison']
   }
 ];
+
+// ============================================
+// CONTENT INTELLIGENCE OS - BRAIN SYSTEM
+// ============================================
+
+export interface AudienceSegment {
+  id: string;
+  name: string;
+  problems: string[];
+  questions: string[];
+  goals: string[];
+  skillLevel: 'beginner' | 'intermediate' | 'advanced';
+  toolsUsed: string[];
+  topicsInterested: string[];
+  contentPreferences: string[];
+  size: number;
+  engagement: number;
+}
+
+export interface ContentOpportunity {
+  id: string;
+  topic: string;
+  source: string;
+  discoveredAt: string;
+  scores: {
+    audienceRelevance: number;
+    freshness: number;
+    problemIntensity: number;
+    educationalValue: number;
+    novelty: number;
+    shareability: number;
+    productRelevance: number;
+    competition: number;
+  };
+  overallScore: number;
+  angles: ContentAngle[];
+  status: 'discovered' | 'scored' | 'selected' | 'in-progress' | 'published';
+  classifiedFor: string[];
+}
+
+export interface ContentAngle {
+  id: string;
+  audience: string;
+  title: string;
+  hook: string;
+  format: string;
+  estimatedPerformance: number;
+}
+
+export interface PostDNA {
+  id: string;
+  postNumber: number;
+  topic: string;
+  subtopic: string;
+  audience: string;
+  skillLevel: string;
+  format: 'carousel' | 'text' | 'video' | 'document';
+  hookType: 'contrarian' | 'practical' | 'question' | 'story' | 'educational';
+  hookText: string;
+  hookLength: number;
+  visualType: string;
+  contentStructure: string;
+  cta: string | null;
+  publishTime: string;
+  source: string;
+  freshness: number;
+  postLength: number;
+  metrics: {
+    reach: number;
+    impressions: number;
+    reactions: number;
+    comments: number;
+    reposts: number;
+    saves: number;
+    sends: number;
+    linkClicks: number;
+    followersGained: number;
+    profileVisits: number;
+  };
+  performanceScore: number;
+  businessRelevance: number;
+  lessons: string[];
+}
+
+export interface LearnedPattern {
+  id: string;
+  observation: string;
+  evidence: string[];
+  confidence: 'high' | 'medium' | 'low';
+  sampleSize: number;
+  supportingPosts: number[];
+  conflictingPosts: number[];
+  lastUpdated: string;
+  category: 'hook' | 'format' | 'timing' | 'topic' | 'audience' | 'cta';
+}
+
+export interface Experiment {
+  id: string;
+  name: string;
+  hypothesis: string;
+  variable: string;
+  status: 'planned' | 'running' | 'completed' | 'inconclusive';
+  startDate: string;
+  endDate?: string;
+  variations: ExperimentVariation[];
+  result?: string;
+  confidence?: number;
+}
+
+export interface ExperimentVariation {
+  id: string;
+  name: string;
+  postId: number;
+  metric: number;
+}
+
+export interface WeeklyLearningReport {
+  id: string;
+  week: string;
+  startDate: string;
+  endDate: string;
+  postsPublished: number;
+  totalReach: number;
+  totalEngagement: number;
+  topicBreakdown: {
+    topic: string;
+    posts: number;
+    avgReach: number;
+    avgEngagement: number;
+  }[];
+  strongSignals: {
+    observation: string;
+    confidence: 'high' | 'medium' | 'low';
+    evidence: number;
+  }[];
+  weakSignals: {
+    observation: string;
+    confidence: 'high' | 'medium' | 'low';
+    evidence: number;
+  }[];
+  nextExperiments: string[];
+  exploreExploitRatio: {
+    exploit: number;
+    explore: number;
+    experiment: number;
+  };
+}
+
+export interface BrainMetrics {
+  audienceBrain: {
+    segments: number;
+    problemsTracked: number;
+    questionsTracked: number;
+  };
+  researchBrain: {
+    signalsCollected: number;
+    opportunitiesFound: number;
+    opportunitiesScored: number;
+  };
+  ideaBrain: {
+    ideasGenerated: number;
+    ideasSelected: number;
+    selectionRate: number;
+  };
+  creativeBrain: {
+    scriptsGenerated: number;
+    visualsGenerated: number;
+    captionsGenerated: number;
+  };
+  analyticsBrain: {
+    postsTracked: number;
+    dataPointsCollected: number;
+    avgPerformanceScore: number;
+  };
+  learningBrain: {
+    patternsLearned: number;
+    experimentsRun: number;
+    confidenceLevel: string;
+  };
+  businessBrain: {
+    contentToBusiness: number;
+    resourceDownloads: number;
+    leadsGenerated: number;
+  };
+}
+
+// Mock Brain Data
+export const mockAudienceSegments: AudienceSegment[] = [
+  {
+    id: 'seg1',
+    name: 'Beginner Developer',
+    problems: ['Where do I start?', 'What should I learn?', 'Which programming language?', 'How do I build my first project?', 'How do I use GitHub?'],
+    questions: ['What\'s the best way to learn coding?', 'How long does it take to learn?', 'Should I learn Python or JavaScript?'],
+    goals: ['Build first project', 'Get first job', 'Understand fundamentals'],
+    skillLevel: 'beginner',
+    toolsUsed: ['VS Code', 'GitHub', 'ChatGPT', 'YouTube'],
+    topicsInterested: ['Getting started', 'Tutorials', 'Project ideas', 'Career advice'],
+    contentPreferences: ['Step-by-step tutorials', 'Visual guides', 'Simple explanations'],
+    size: 45,
+    engagement: 78
+  },
+  {
+    id: 'seg2',
+    name: 'AI Learner',
+    problems: ['Which AI tools should I learn?', 'How do I use ChatGPT for coding?', 'What\'s new in AI?', 'Which AI tools are free?', 'How do I build with AI?'],
+    questions: ['What\'s the best AI tool for beginners?', 'How do I prompt effectively?', 'Can AI replace developers?'],
+    goals: ['Master AI tools', 'Build AI projects', 'Stay current'],
+    skillLevel: 'intermediate',
+    toolsUsed: ['ChatGPT', 'Claude', 'Cursor', 'GitHub Copilot'],
+    topicsInterested: ['AI tools', 'Prompt engineering', 'AI projects', 'AI news'],
+    contentPreferences: ['Tool comparisons', 'Practical tutorials', 'News breakdowns'],
+    size: 32,
+    engagement: 85
+  },
+  {
+    id: 'seg3',
+    name: 'Quick Builder',
+    problems: ['Need ready-to-use code', 'Want fast results', 'Struggle to debug', 'Need shortcuts'],
+    questions: ['Where can I copy code?', 'What\'s the fastest way to build?', 'How do I fix this error?'],
+    goals: ['Build quickly', 'Ship projects', 'Use templates'],
+    skillLevel: 'beginner',
+    toolsUsed: ['AI code generators', 'Template sites', 'Stack Overflow'],
+    topicsInterested: ['Code snippets', 'Templates', 'Quick wins', 'Copy-paste solutions'],
+    contentPreferences: ['Code examples', 'Ready-to-use snippets', 'Fast tutorials'],
+    size: 28,
+    engagement: 65
+  },
+  {
+    id: 'seg4',
+    name: 'Startup Builder',
+    problems: ['What should I build?', 'How do I validate an idea?', 'Which tools are cheap/free?', 'How do I launch?', 'How do I get users?'],
+    questions: ['How do I find my first customers?', 'What\'s the best tech stack?', 'How do I price my product?'],
+    goals: ['Launch product', 'Get users', 'Make revenue'],
+    skillLevel: 'intermediate',
+    toolsUsed: ['Next.js', 'Vercel', 'Stripe', 'Supabase'],
+    topicsInterested: ['Indie hacking', 'Product launches', 'Growth tactics', 'Monetization'],
+    contentPreferences: ['Case studies', 'Revenue reports', 'Launch stories'],
+    size: 18,
+    engagement: 92
+  }
+];
+
+export const mockContentOpportunities: ContentOpportunity[] = [
+  {
+    id: 'opp1',
+    topic: 'New Free AI Coding Tool: Cursor Pro',
+    source: 'Product Hunt',
+    discoveredAt: '2025-01-15T08:00:00Z',
+    scores: {
+      audienceRelevance: 9,
+      freshness: 10,
+      problemIntensity: 8,
+      educationalValue: 9,
+      novelty: 8,
+      shareability: 9,
+      productRelevance: 7,
+      competition: 6
+    },
+    overallScore: 8.3,
+    angles: [
+      { id: 'a1', audience: 'Beginner Developer', title: 'Build your first project with this free AI coding tool', hook: 'You can now build a full web app without writing a single line of code.', format: 'carousel', estimatedPerformance: 85 },
+      { id: 'a2', audience: 'AI Learner', title: 'I tested Cursor Pro for a week. Here\'s what happened.', hook: 'I replaced my entire workflow with AI for 7 days.', format: 'text', estimatedPerformance: 78 },
+      { id: 'a3', audience: 'Startup Builder', title: 'How to build an MVP in 24 hours with AI tools', hook: 'I built a SaaS product in one day. Here\'s the exact stack.', format: 'tutorial', estimatedPerformance: 92 }
+    ],
+    status: 'selected',
+    classifiedFor: ['AI Learner', 'Beginner Developer', 'Startup Builder']
+  },
+  {
+    id: 'opp2',
+    topic: 'GitHub Copilot Workspace Launch',
+    source: 'GitHub Blog',
+    discoveredAt: '2025-01-14T14:00:00Z',
+    scores: {
+      audienceRelevance: 8,
+      freshness: 9,
+      problemIntensity: 7,
+      educationalValue: 8,
+      novelty: 7,
+      shareability: 8,
+      productRelevance: 6,
+      competition: 7
+    },
+    overallScore: 7.5,
+    angles: [
+      { id: 'a4', audience: 'AI Learner', title: 'GitHub just changed how we code forever', hook: 'GitHub Copilot Workspace is here. This changes everything.', format: 'news', estimatedPerformance: 75 },
+      { id: 'a5', audience: 'Quick Builder', title: 'How to use GitHub Copilot Workspace (step-by-step)', hook: 'GitHub just made coding 10x easier. Here\'s how to use it.', format: 'tutorial', estimatedPerformance: 82 }
+    ],
+    status: 'scored',
+    classifiedFor: ['AI Learner', 'Quick Builder']
+  },
+  {
+    id: 'opp3',
+    topic: 'Why Junior Developers Struggle with Debugging',
+    source: 'Reddit /r/learnprogramming',
+    discoveredAt: '2025-01-13T10:00:00Z',
+    scores: {
+      audienceRelevance: 9,
+      freshness: 5,
+      problemIntensity: 9,
+      educationalValue: 10,
+      novelty: 6,
+      shareability: 7,
+      productRelevance: 8,
+      competition: 5
+    },
+    overallScore: 7.4,
+    angles: [
+      { id: 'a6', audience: 'Beginner Developer', title: 'The debugging mindset every junior developer needs', hook: 'Stop Googling errors. Do this instead.', format: 'carousel', estimatedPerformance: 88 },
+      { id: 'a7', audience: 'Quick Builder', title: '5 debugging tools that will save you hours', hook: 'I wasted 100+ hours debugging the wrong way.', format: 'text', estimatedPerformance: 76 }
+    ],
+    status: 'in-progress',
+    classifiedFor: ['Beginner Developer', 'Quick Builder']
+  }
+];
+
+export const mockPostDNA: PostDNA[] = [
+  {
+    id: 'dna1',
+    postNumber: 17,
+    topic: 'AI Coding',
+    subtopic: 'Free AI Tools',
+    audience: 'Beginner Developer',
+    skillLevel: 'beginner',
+    format: 'carousel',
+    hookType: 'contrarian',
+    hookText: 'You can now build your first project with this free AI coding tool.',
+    hookLength: 11,
+    visualType: 'Screenshot + diagram',
+    contentStructure: 'Problem → Solution → Steps → Example → CTA',
+    cta: 'Save this for later',
+    publishTime: '2025-01-10T19:30:00Z',
+    source: 'Product launch',
+    freshness: 2,
+    postLength: 780,
+    metrics: {
+      reach: 8400,
+      impressions: 12500,
+      reactions: 342,
+      comments: 74,
+      reposts: 31,
+      saves: 118,
+      sends: 45,
+      linkClicks: 23,
+      followersGained: 24,
+      profileVisits: 86
+    },
+    performanceScore: 92,
+    businessRelevance: 78,
+    lessons: ['Beginner-focused tutorials perform well', 'Contrarian hooks increase engagement', 'Carousels get more saves', 'Fresh tools generate urgency']
+  },
+  {
+    id: 'dna2',
+    postNumber: 16,
+    topic: 'Developer Tips',
+    subtopic: 'Productivity',
+    audience: 'AI Learner',
+    skillLevel: 'intermediate',
+    format: 'text',
+    hookType: 'practical',
+    hookText: '5 AI tools that will 10x your coding speed.',
+    hookLength: 9,
+    visualType: 'Single graphic',
+    contentStructure: 'Hook → List → Explanation → CTA',
+    cta: 'Which one is your favorite?',
+    publishTime: '2025-01-08T18:00:00Z',
+    source: 'Curated list',
+    freshness: 5,
+    postLength: 650,
+    metrics: {
+      reach: 5200,
+      impressions: 8900,
+      reactions: 198,
+      comments: 42,
+      reposts: 18,
+      saves: 67,
+      sends: 23,
+      linkClicks: 12,
+      followersGained: 12,
+      profileVisits: 45
+    },
+    performanceScore: 68,
+    businessRelevance: 65,
+    lessons: ['List posts get moderate engagement', 'Practical hooks work for intermediate audience', 'Text posts get fewer saves than carousels']
+  },
+  {
+    id: 'dna3',
+    postNumber: 15,
+    topic: 'AI News',
+    subtopic: 'Claude 3.5 Launch',
+    audience: 'AI Learner',
+    skillLevel: 'intermediate',
+    format: 'text',
+    hookType: 'educational',
+    hookText: 'Claude 3.5 just launched. Here\'s what you need to know.',
+    hookLength: 10,
+    visualType: 'Screenshot',
+    contentStructure: 'News → Features → Comparison → Implications',
+    cta: null,
+    publishTime: '2025-01-05T20:00:00Z',
+    source: 'News',
+    freshness: 1,
+    postLength: 890,
+    metrics: {
+      reach: 11200,
+      impressions: 18500,
+      reactions: 456,
+      comments: 89,
+      reposts: 67,
+      saves: 134,
+      sends: 78,
+      linkClicks: 45,
+      followersGained: 38,
+      profileVisits: 124
+    },
+    performanceScore: 95,
+    businessRelevance: 72,
+    lessons: ['Fresh news gets high reach', 'Educational hooks work for news', 'Very fresh content (<2 days) performs best', 'AI news has high shareability']
+  }
+];
+
+export const mockLearnedPatterns: LearnedPattern[] = [
+  {
+    id: 'pat1',
+    observation: 'Beginner-focused practical tutorials consistently outperform other formats',
+    evidence: ['Post #17: 8,400 reach', 'Post #12: 7,200 reach', 'Post #9: 6,800 reach', 'Post #6: 5,900 reach'],
+    confidence: 'high',
+    sampleSize: 11,
+    supportingPosts: [17, 12, 9, 6, 4, 2],
+    conflictingPosts: [16],
+    lastUpdated: '2025-01-15T12:00:00Z',
+    category: 'audience'
+  },
+  {
+    id: 'pat2',
+    observation: 'Contrarian hooks increase comments but may reduce saves',
+    evidence: ['Post #17: 74 comments, 118 saves', 'Post #14: 62 comments, 45 saves', 'Post #11: 58 comments, 52 saves'],
+    confidence: 'medium',
+    sampleSize: 7,
+    supportingPosts: [17, 14, 11],
+    conflictingPosts: [15, 13],
+    lastUpdated: '2025-01-14T10:00:00Z',
+    category: 'hook'
+  },
+  {
+    id: 'pat3',
+    observation: 'Carousels get 2.3x more saves than text posts',
+    evidence: ['Post #17 carousel: 118 saves', 'Post #13 carousel: 95 saves', 'Post #16 text: 67 saves', 'Post #10 text: 34 saves'],
+    confidence: 'high',
+    sampleSize: 9,
+    supportingPosts: [17, 13, 8, 5],
+    conflictingPosts: [],
+    lastUpdated: '2025-01-13T15:00:00Z',
+    category: 'format'
+  },
+  {
+    id: 'pat4',
+    observation: 'Posts published between 7-8 PM get 40% more engagement',
+    evidence: ['Post #17 at 7:30 PM: 92 score', 'Post #15 at 8:00 PM: 95 score', 'Post #12 at 7:45 PM: 78 score', 'Post #16 at 6:00 PM: 68 score'],
+    confidence: 'medium',
+    sampleSize: 12,
+    supportingPosts: [17, 15, 12, 9],
+    conflictingPosts: [16, 14],
+    lastUpdated: '2025-01-12T18:00:00Z',
+    category: 'timing'
+  },
+  {
+    id: 'pat5',
+    observation: 'AI tool tutorials have higher business relevance than general AI news',
+    evidence: ['Post #17 tool tutorial: 78 business score', 'Post #15 AI news: 72 business score', 'Post #13 tool guide: 85 business score'],
+    confidence: 'medium',
+    sampleSize: 6,
+    supportingPosts: [17, 13, 10],
+    conflictingPosts: [15],
+    lastUpdated: '2025-01-11T14:00:00Z',
+    category: 'topic'
+  }
+];
+
+export const mockExperiments: Experiment[] = [
+  {
+    id: 'exp1',
+    name: 'Hook Type A/B Test',
+    hypothesis: 'Contrarian hooks generate more comments than practical hooks',
+    variable: 'Hook type',
+    status: 'completed',
+    startDate: '2025-01-01',
+    endDate: '2025-01-07',
+    variations: [
+      { id: 'v1', name: 'Contrarian: "Stop learning to code this way"', postId: 14, metric: 62 },
+      { id: 'v2', name: 'Practical: "5 steps to learn coding faster"', postId: 16, metric: 42 }
+    ],
+    result: 'Contrarian hooks generated 48% more comments',
+    confidence: 72
+  },
+  {
+    id: 'exp2',
+    name: 'Format Test: Carousel vs Text',
+    hypothesis: 'Carousels generate more saves than text posts',
+    variable: 'Content format',
+    status: 'completed',
+    startDate: '2025-01-08',
+    endDate: '2025-01-14',
+    variations: [
+      { id: 'v3', name: 'Carousel: AI tool tutorial', postId: 17, metric: 118 },
+      { id: 'v4', name: 'Text: AI tool list', postId: 16, metric: 67 }
+    ],
+    result: 'Carousels generated 76% more saves',
+    confidence: 85
+  },
+  {
+    id: 'exp3',
+    name: 'CTA Test: Question vs Save',
+    hypothesis: 'Question CTAs generate more comments than save CTAs',
+    variable: 'Call-to-action',
+    status: 'running',
+    startDate: '2025-01-15',
+    variations: [
+      { id: 'v5', name: 'Question: "Which tool is your favorite?"', postId: 18, metric: 0 },
+      { id: 'v6', name: 'Save: "Save this for later"', postId: 19, metric: 0 }
+    ]
+  },
+  {
+    id: 'exp4',
+    name: 'Topic Test: Tutorial vs News',
+    hypothesis: 'Tutorials generate more business relevance than news',
+    variable: 'Content topic',
+    status: 'planned',
+    startDate: '2025-01-22',
+    variations: [
+      { id: 'v7', name: 'Tutorial: How to build with AI', postId: 0, metric: 0 },
+      { id: 'v8', name: 'News: Latest AI updates', postId: 0, metric: 0 }
+    ]
+  }
+];
+
+export const mockWeeklyReport: WeeklyLearningReport = {
+  id: 'report1',
+  week: 'Week 3, January 2025',
+  startDate: '2025-01-13',
+  endDate: '2025-01-19',
+  postsPublished: 5,
+  totalReach: 32400,
+  totalEngagement: 1245,
+  topicBreakdown: [
+    { topic: 'AI Tool Tutorials', posts: 2, avgReach: 7800, avgEngagement: 420 },
+    { topic: 'AI News', posts: 1, avgReach: 11200, avgEngagement: 580 },
+    { topic: 'Developer Tips', posts: 1, avgReach: 5200, avgEngagement: 240 },
+    { topic: 'Career Advice', posts: 1, avgReach: 4800, avgEngagement: 195 }
+  ],
+  strongSignals: [
+    { observation: 'Beginner-focused practical tutorials have performed consistently well relative to other formats over the last 4 weeks.', confidence: 'high', evidence: 11 },
+    { observation: 'Carousels generate 2.3x more saves than text posts.', confidence: 'high', evidence: 9 },
+    { observation: 'Posts published between 7-8 PM get 40% more engagement.', confidence: 'medium', evidence: 12 }
+  ],
+  weakSignals: [
+    { observation: 'Contrarian hooks may increase comments but reduce saves.', confidence: 'low', evidence: 3 },
+    { observation: 'AI tool tutorials may have higher business relevance than general AI news.', confidence: 'low', evidence: 6 }
+  ],
+  nextExperiments: [
+    'Test AI tutorial + carousel format',
+    'Test developer problem + short text post',
+    'Test AI news + practical implementation angle',
+    'Test beginner tutorial + downloadable resource'
+  ],
+  exploreExploitRatio: {
+    exploit: 70,
+    explore: 20,
+    experiment: 10
+  }
+};
+
+export const mockBrainMetrics: BrainMetrics = {
+  audienceBrain: {
+    segments: 4,
+    problemsTracked: 23,
+    questionsTracked: 18
+  },
+  researchBrain: {
+    signalsCollected: 847,
+    opportunitiesFound: 156,
+    opportunitiesScored: 89
+  },
+  ideaBrain: {
+    ideasGenerated: 234,
+    ideasSelected: 67,
+    selectionRate: 28.6
+  },
+  creativeBrain: {
+    scriptsGenerated: 67,
+    visualsGenerated: 67,
+    captionsGenerated: 67
+  },
+  analyticsBrain: {
+    postsTracked: 17,
+    dataPointsCollected: 187,
+    avgPerformanceScore: 78.4
+  },
+  learningBrain: {
+    patternsLearned: 5,
+    experimentsRun: 4,
+    confidenceLevel: 'Medium-High'
+  },
+  businessBrain: {
+    contentToBusiness: 72,
+    resourceDownloads: 234,
+    leadsGenerated: 18
+  }
+};

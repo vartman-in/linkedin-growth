@@ -3,11 +3,13 @@ import { useApp } from '../store';
 import {
   Plus, Lightbulb, Link2, FileText, TrendingUp, MessageSquare,
   RefreshCw, Eye, CheckCircle2, XCircle, AlertTriangle,
-  ArrowRight, ChevronRight, Shield, Sparkles, BookOpen
+  ArrowRight, ChevronRight, Shield, Sparkles, BookOpen, Target
 } from 'lucide-react';
 import { ContentIdea } from '../data';
 
-type ContentTab = 'ideas' | 'drafts' | 'carousel' | 'calendar';
+import { mockContentOpportunities } from '../data';
+
+type ContentTab = 'ideas' | 'factory' | 'drafts' | 'carousel' | 'calendar';
 
 export default function ContentPage() {
   const { state, dispatch } = useApp();
@@ -18,6 +20,7 @@ export default function ContentPage() {
 
   const tabs = [
     { id: 'ideas' as const, label: 'Ideas & Sources', icon: Lightbulb, count: state.ideas.length },
+    { id: 'factory' as const, label: 'Content Factory', icon: RefreshCw, count: state.contentOpportunities.length },
     { id: 'drafts' as const, label: 'Drafts', icon: FileText, count: state.drafts.length },
     { id: 'carousel' as const, label: 'Carousel', icon: BookOpen, count: state.carouselSlides.length },
     { id: 'calendar' as const, label: 'Calendar', icon: TrendingUp, count: 0 },
@@ -152,6 +155,7 @@ export default function ContentPage() {
 
       {/* Content */}
       {activeTab === 'ideas' && <IdeasPanel />}
+      {activeTab === 'factory' && <FactoryPanel />}
       {activeTab === 'drafts' && <DraftsPanel />}
       {activeTab === 'carousel' && <CarouselPanel />}
       {activeTab === 'calendar' && <CalendarPanel />}
@@ -554,6 +558,144 @@ function CalendarPanel() {
             </span>
           </div>
         ))}
+      </div>
+    </div>
+  );
+}
+
+function FactoryPanel() {
+  const { state } = useApp();
+
+  const pipelineSteps = [
+    { id: 'idea', label: 'Idea', icon: Lightbulb, color: 'bg-yellow-100 text-yellow-700' },
+    { id: 'angle', label: 'Angle', icon: Target, color: 'bg-blue-100 text-blue-700' },
+    { id: 'script', label: 'Script', icon: FileText, color: 'bg-purple-100 text-purple-700' },
+    { id: 'visual', label: 'Visual', icon: RefreshCw, color: 'bg-pink-100 text-pink-700' },
+    { id: 'caption', label: 'Caption', icon: MessageSquare, color: 'bg-indigo-100 text-indigo-700' },
+    { id: 'hashtags', label: 'Hashtags', icon: Sparkles, color: 'bg-teal-100 text-teal-700' },
+    { id: 'factcheck', label: 'Fact Check', icon: Shield, color: 'bg-orange-100 text-orange-700' },
+    { id: 'review', label: 'Human Review', icon: CheckCircle2, color: 'bg-green-100 text-green-700' },
+  ];
+
+  return (
+    <div className="space-y-5">
+      {/* Pipeline Visualization */}
+      <div className="bg-gradient-to-br from-accent/5 to-primary/5 rounded-xl border border-accent/10 p-5">
+        <h3 className="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2">
+          <RefreshCw className="w-4 h-4 text-accent" />
+          Content Factory Pipeline
+        </h3>
+        <p className="text-xs text-gray-500 mb-4">
+          Multi-agent system: Script Agent → Visual Agent → Caption Agent → Hashtag Agent → Fact Check → Human Review
+        </p>
+        <div className="flex flex-wrap items-center gap-2">
+          {pipelineSteps.map((step, idx) => {
+            const Icon = step.icon;
+            return (
+              <div key={step.id} className="flex items-center gap-2">
+                <div className={`flex items-center gap-1.5 px-3 py-2 rounded-lg ${step.color}`}>
+                  <Icon className="w-3.5 h-3.5" />
+                  <span className="text-xs font-medium">{step.label}</span>
+                </div>
+                {idx < pipelineSteps.length - 1 && (
+                  <ArrowRight className="w-3.5 h-3.5 text-gray-300" />
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Brain-Informed Opportunities */}
+      <div>
+        <h3 className="text-sm font-semibold text-gray-800 mb-3 flex items-center gap-2">
+          <Sparkles className="w-4 h-4 text-primary" />
+          Brain-Selected Opportunities
+        </h3>
+        <p className="text-xs text-gray-500 mb-3">
+          These topics were selected by the brain based on audience relevance, freshness, and historical performance patterns.
+        </p>
+        <div className="space-y-3">
+          {state.contentOpportunities.map((opp, idx) => (
+            <div key={opp.id} className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-all animate-slide-in" style={{ animationDelay: `${idx * 100}ms` }}>
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h4 className="text-sm font-bold text-gray-800">{opp.topic}</h4>
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                      opp.status === 'selected' ? 'bg-success-light text-success' :
+                      opp.status === 'in-progress' ? 'bg-blue-100 text-blue-700' :
+                      'bg-gray-100 text-gray-600'
+                    }`}>
+                      {opp.status}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500">Score: {opp.overallScore.toFixed(1)}/10 • Source: {opp.source}</p>
+                </div>
+                <button className="text-xs bg-primary text-white px-3 py-1.5 rounded-lg font-medium hover:bg-primary-dark transition-colors">
+                  Create Content
+                </button>
+              </div>
+
+              {/* Angles */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                {opp.angles.map((angle, i) => (
+                  <div key={angle.id} className="p-2.5 bg-gray-50 rounded-lg border border-gray-100">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <div className="w-5 h-5 bg-primary-light rounded-full flex items-center justify-center">
+                        <span className="text-[10px] font-bold text-primary">{String.fromCharCode(65 + i)}</span>
+                      </div>
+                      <span className="text-[10px] text-gray-500">{angle.audience}</span>
+                    </div>
+                    <p className="text-xs font-medium text-gray-700 mb-1">{angle.title}</p>
+                    <p className="text-[10px] text-gray-500 italic">"{angle.hook}"</p>
+                    <div className="flex items-center gap-2 mt-1.5">
+                      <span className="text-[10px] text-gray-400">{angle.format}</span>
+                      <span className="text-[10px] text-success font-medium">~{angle.estimatedPerformance}% perf</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Scores */}
+              <div className="mt-3 pt-3 border-t border-gray-100">
+                <div className="flex flex-wrap gap-2">
+                  {Object.entries(opp.scores).slice(0, 4).map(([key, value]) => (
+                    <div key={key} className="flex items-center gap-1">
+                      <span className="text-[10px] text-gray-500 capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}:</span>
+                      <span className="text-[10px] font-bold text-gray-700">{value}/10</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Explore/Exploit/Experiment */}
+      <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <h4 className="text-sm font-semibold text-gray-800 mb-3">Content Strategy Balance</h4>
+        <div className="grid grid-cols-3 gap-4">
+          <div className="text-center p-3 bg-success-light/50 rounded-lg">
+            <div className="text-xl font-bold text-success">70%</div>
+            <div className="text-xs text-gray-600 font-medium">Exploit</div>
+            <div className="text-[10px] text-gray-500 mt-0.5">Use proven patterns</div>
+          </div>
+          <div className="text-center p-3 bg-primary-light/50 rounded-lg">
+            <div className="text-xl font-bold text-primary">20%</div>
+            <div className="text-xs text-gray-600 font-medium">Explore</div>
+            <div className="text-[10px] text-gray-500 mt-0.5">Try variations</div>
+          </div>
+          <div className="text-center p-3 bg-accent-light/50 rounded-lg">
+            <div className="text-xl font-bold text-accent">10%</div>
+            <div className="text-xs text-gray-600 font-medium">Experiment</div>
+            <div className="text-[10px] text-gray-500 mt-0.5">Try new approaches</div>
+          </div>
+        </div>
+        <p className="text-xs text-gray-500 mt-3">
+          The brain doesn't just repeat what worked. It balances proven patterns with exploration and experimentation.
+        </p>
       </div>
     </div>
   );
