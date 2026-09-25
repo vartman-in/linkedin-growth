@@ -1,9 +1,9 @@
 /**
  * API Client for Growth Operator Backend
- * Handles all API communication with proper error handling
+ * Handles authentication and API requests
  */
 
-const API_BASE = (import.meta as any).env?.VITE_API_URL || 'http://localhost:3001/api/v1';
+const API_BASE = (window as any).__ENV__?.VITE_API_URL || 'http://localhost:3001/api/v1';
 
 class ApiError extends Error {
   constructor(public status: number, public data: any) {
@@ -12,19 +12,41 @@ class ApiError extends Error {
   }
 }
 
+// Token management
+let authToken: string | null = localStorage.getItem('auth_token');
+
+export function setAuthToken(token: string | null) {
+  authToken = token;
+  if (token) {
+    localStorage.setItem('auth_token', token);
+  } else {
+    localStorage.removeItem('auth_token');
+  }
+}
+
+export function getAuthToken(): string | null {
+  return authToken;
+}
+
 async function request<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
   const url = `${API_BASE}${endpoint}`;
   
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...((options.headers as Record<string, string>) || {}),
+  };
+
+  if (authToken) {
+    headers['Authorization'] = `Bearer ${authToken}`;
+  }
+
   try {
     const response = await fetch(url, {
       ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
+      headers,
     });
 
     if (!response.ok) {
@@ -44,6 +66,32 @@ async function request<T>(
     throw new Error(`Network error: ${(error as Error).message}`);
   }
 }
+
+// ============ AUTH API ============
+
+export const authApi = {
+  register: (email: string, password: string, name: string) =>
+    request<{ user: any; token: string }>('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({ email, password, name }),
+    }),
+
+  login: (email: string, password: string) =>
+    request<{ user: any; token: string }>('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    }),
+
+  me: () => request<any>('/auth/me'),
+
+  workspaces: () => request<any[]>('/auth/workspaces'),
+
+  createWorkspace: (name: string) =>
+    request<any>('/auth/workspaces', {
+      method: 'POST',
+      body: JSON.stringify({ name }),
+    }),
+};
 
 // ============ WORKSPACE API ============
 

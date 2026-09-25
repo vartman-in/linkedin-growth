@@ -4,6 +4,7 @@
  */
 
 import { ContentStrategy, ResearchResult, AIContext } from './index';
+import { getAIProvider } from './provider';
 
 export class StrategyService {
   /**
@@ -14,25 +15,71 @@ export class StrategyService {
     research: ResearchResult,
     context: AIContext
   ): Promise<ContentStrategy> {
-    // Determine objective based on context and topic
+    try {
+      const ai = getAIProvider();
+      
+      // Build context for AI
+      const researchSummary = research.claims
+        .slice(0, 10)
+        .map(c => `- ${c.text} (confidence: ${c.confidence})`)
+        .join('\n');
+      
+      const prompt = `You are a LinkedIn content strategist. Analyze this topic and research to create an optimal content strategy.
+
+TOPIC: ${topic}
+${context.thesis ? `ORIGINAL THESIS: ${context.thesis}` : ''}
+
+RESEARCH FINDINGS:
+${researchSummary || 'No specific research available'}
+
+${context.icp ? `TARGET AUDIENCE (ICP): ${JSON.stringify(context.icp)}` : ''}
+${context.pillars ? `CONTENT PILLARS: ${context.pillars.join(', ')}` : ''}
+${context.voice ? `VOICE/TONE: ${context.voice.tone || 'professional'}` : ''}
+
+Create a content strategy in JSON format:
+{
+  "objective": "authority|education|awareness|conversation|lead_generation|trust|conversion",
+  "audience": "specific audience description",
+  "angle": "educational|contrarian|practical|analytical|story|framework|observation|case_study",
+  "format": "text_post|carousel|document|image_post|poll|short_form|thread|case_study|checklist|framework|how_to|opinion|analysis",
+  "narrative": "problem_solution|observation_evidence_implication|claim_counterpoint_evidence|context_tension_resolution_lesson|problem_principle_steps_application",
+  "hook": "compelling opening line that connects to the thesis",
+  "keyPoints": ["point 1", "point 2", "point 3", "point 4", "point 5"],
+  "cta": "call to action",
+  "reasoning": "brief explanation of why this strategy was chosen"
+}
+
+Choose the strategy that best serves the topic and audience while preserving the original thesis if provided.`;
+
+      const result = await ai.completeStructured<ContentStrategy>(prompt, {}, { temperature: 0.7 });
+      
+      return {
+        ...result,
+        hook: result.hook || '',
+        keyPoints: result.keyPoints || [],
+        cta: result.cta || ''
+      };
+    } catch (error) {
+      console.error('AI strategy determination failed, using fallback:', error);
+      // Fallback to deterministic strategy
+      return this.deterministicStrategy(topic, research, context);
+    }
+  }
+
+  /**
+   * Deterministic fallback strategy (used when AI is unavailable)
+   */
+  private deterministicStrategy(
+    topic: string,
+    research: ResearchResult,
+    context: AIContext
+  ): ContentStrategy {
     const objective = this.determineObjective(topic, context);
-    
-    // Determine target audience
     const audience = this.determineAudience(context);
-    
-    // Determine angle based on research and audience
     const angle = this.determineAngle(topic, research, audience, context);
-    
-    // Determine format based on content complexity and audience
     const format = this.determineFormat(topic, research, angle, context);
-    
-    // Determine narrative structure
     const narrative = this.determineNarrative(angle, format);
-    
-    // Generate key points from research
     const keyPoints = this.extractKeyPoints(research);
-    
-    // Determine CTA based on objective
     const cta = this.determineCTA(objective, context);
 
     return {
@@ -41,7 +88,7 @@ export class StrategyService {
       angle,
       format,
       narrative,
-      hook: '', // Will be generated later
+      hook: '',
       keyPoints,
       cta
     };

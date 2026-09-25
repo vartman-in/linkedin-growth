@@ -8,6 +8,7 @@ import { fileURLToPath } from 'url';
 
 import { errorHandler, notFoundHandler } from './middleware/error.middleware';
 import healthRoutes from './routes/health.routes';
+import authRoutes from './routes/auth.routes';
 import workspaceRoutes from './routes/workspace.routes';
 import profileRoutes from './routes/profile.routes';
 import icpRoutes from './routes/icp.routes';
@@ -41,6 +42,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // API routes
 app.use('/api/v1/health', healthRoutes);
+app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/workspaces', workspaceRoutes);
 app.use('/api/v1/profiles', profileRoutes);
 app.use('/api/v1/icps', icpRoutes);

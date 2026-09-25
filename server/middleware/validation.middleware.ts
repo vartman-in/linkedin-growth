@@ -173,3 +173,19 @@ export const uuidParamSchema = z.object({
 export const workspaceIdParamSchema = z.object({
   workspaceId: z.string().uuid(),
 });
+
+// Auth schemas
+export const registerSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8),
+  name: z.string().min(1),
+});
+
+export const loginSchema = z.object({
+  email: z.string().email(),
+  password: z.string(),
+});
+
+export const createWorkspaceSchema = z.object({
+  name: z.string().min(1),
+});

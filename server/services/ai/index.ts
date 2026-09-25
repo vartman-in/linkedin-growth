@@ -21,6 +21,8 @@ export interface AIContext {
   proofPoints?: any[];
   experiences?: any[];
   contentHistory?: any[];
+  sourceUrls?: string[];
+  thesis?: string;
 }
 
 export interface ResearchResult {

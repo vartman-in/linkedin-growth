@@ -4,7 +4,11 @@
  */
 
 import { Source, Claim, Contradiction, Evidence, ResearchResult, AIContext } from './index';
+import { getAIProvider } from './provider';
 import { v4 as uuidv4 } from 'uuid';
+import axios from 'axios';
+import * as cheerio from 'cheerio';
+import Parser from 'rss-parser';
 
 // Security constants
 const MAX_URL_LENGTH = 2048;
@@ -13,19 +17,48 @@ const REQUEST_TIMEOUT = 30000; // 30 seconds
 const ALLOWED_PROTOCOLS = ['http:', 'https:'];
 const BLOCKED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', '::1'];
 
+const rssParser = new Parser();
+
 export class ResearchService {
   /**
    * Research a topic by fetching and analyzing sources
    */
   async research(topic: string, context: AIContext): Promise<ResearchResult> {
-    // For now, return empty result - will integrate with actual AI providers
+    const sources: Source[] = [];
+    const claims: Claim[] = [];
+    const contradictions: Contradiction[] = [];
+    const evidence: Evidence[] = [];
+
+    // If context has source URLs, fetch them
+    if (context.sourceUrls && context.sourceUrls.length > 0) {
+      for (const url of context.sourceUrls) {
+        try {
+          const source = await this.fetchSource(url);
+          sources.push(source);
+          
+          // Extract claims from source
+          const sourceClaims = await this.extractClaims(source);
+          claims.push(...sourceClaims);
+        } catch (error) {
+          console.error(`Failed to fetch source ${url}:`, error);
+        }
+      }
+    }
+
+    // Detect contradictions
+    const detectedContradictions = await this.detectContradictions(claims);
+    contradictions.push(...detectedContradictions);
+
+    // Calculate confidence based on source quality and claim support
+    const confidence = this.calculateConfidence(sources, claims, contradictions);
+
     return {
       topic,
-      sources: [],
-      claims: [],
-      contradictions: [],
-      evidence: [],
-      confidence: 0
+      sources,
+      claims,
+      contradictions,
+      evidence,
+      confidence
     };
   }
 
@@ -37,20 +70,84 @@ export class ResearchService {
     this.validateUrl(url);
 
     try {
-      // Note: Actual fetching will be implemented when AI provider is integrated
-      // This is the security validation layer
+      // Check if it's an RSS/Atom feed
+      if (url.includes('/feed') || url.includes('/rss') || url.endsWith('.xml')) {
+        return await this.fetchRSSSource(url);
+      }
+
+      // Fetch HTML content
+      const response = await axios.get(url, {
+        timeout: REQUEST_TIMEOUT,
+        maxContentLength: MAX_RESPONSE_SIZE,
+        headers: {
+          'User-Agent': 'GrowthOperator/1.0 (Research Bot)',
+        },
+      });
+
+      // Check content type
+      const contentType = response.headers['content-type'] || '';
+      if (!contentType.includes('text/html') && !contentType.includes('application/xhtml')) {
+        throw new Error(`Unsupported content type: ${contentType}`);
+      }
+
+      // Parse HTML
+      const $ = cheerio.load(response.data);
+      
+      // Extract title
+      const title = $('title').text() || $('h1').first().text() || url;
+      
+      // Extract main content
+      $('script, style, nav, footer, header, aside').remove();
+      const content = $('body').text().replace(/\s+/g, ' ').trim();
+
+      // Extract metadata
+      const author = $('meta[name="author"]').attr('content') || '';
+      const date = $('meta[property="article:published_time"]').attr('content') || '';
+
       const source: Source = {
         id: uuidv4(),
         url,
-        title: '',
-        content: '',
+        title: title.substring(0, 500),
+        author: author.substring(0, 200),
+        date: date.substring(0, 50),
+        content: content.substring(0, 50000), // Limit content size
         type: 'web',
         extractedAt: new Date()
       };
 
       return source;
     } catch (error) {
+      if (error.response) {
+        throw new Error(`Failed to fetch source: HTTP ${error.response.status}`);
+      }
       throw new Error(`Failed to fetch source: ${error.message}`);
+    }
+  }
+
+  /**
+   * Fetch RSS/Atom feed source
+   */
+  private async fetchRSSSource(url: string): Promise<Source> {
+    try {
+      const feed = await rssParser.parseURL(url);
+      
+      const items = feed.items.slice(0, 5); // Get latest 5 items
+      const content = items.map(item => 
+        `${item.title}: ${item.contentSnippet || item.content || ''}`
+      ).join('\n\n');
+
+      return {
+        id: uuidv4(),
+        url,
+        title: feed.title || url,
+        author: feed.creator || '',
+        date: feed.items[0]?.isoDate || '',
+        content: content.substring(0, 50000),
+        type: 'web',
+        extractedAt: new Date()
+      };
+    } catch (error) {
+      throw new Error(`Failed to parse RSS feed: ${error.message}`);
     }
   }
 
@@ -112,11 +209,81 @@ export class ResearchService {
   }
 
   /**
-   * Extract claims from a source
+   * Calculate overall confidence based on sources and claims
+   */
+  private calculateConfidence(
+    sources: Source[],
+    claims: Claim[],
+    contradictions: Contradiction[]
+  ): number {
+    if (sources.length === 0 || claims.length === 0) return 0;
+
+    // Base confidence from claim support
+    const supportedClaims = claims.filter(c => c.status === 'supported').length;
+    const claimConfidence = supportedClaims / claims.length;
+
+    // Penalty for contradictions
+    const contradictionPenalty = contradictions.length * 0.1;
+
+    // Bonus for multiple sources
+    const sourceBonus = Math.min(sources.length * 0.05, 0.2);
+
+    const confidence = Math.max(0, Math.min(1, 
+      claimConfidence + sourceBonus - contradictionPenalty
+    ));
+
+    return confidence;
+  }
+
+  /**
+   * Extract claims from a source using AI
    */
   async extractClaims(source: Source): Promise<Claim[]> {
-    // Placeholder - will integrate with AI provider for claim extraction
-    return [];
+    try {
+      const ai = getAIProvider();
+      
+      const prompt = `Analyze this content and extract factual claims, statistics, and key assertions.
+
+Source: ${source.title}
+URL: ${source.url}
+Content: ${source.content.substring(0, 10000)}
+
+Extract claims in JSON format:
+{
+  "claims": [
+    {
+      "text": "The claim text",
+      "type": "fact|opinion|statistic|experience",
+      "confidence": 0.0-1.0,
+      "evidence": ["supporting text from source"]
+    }
+  ]
+}
+
+Focus on verifiable claims, not opinions. Include confidence scores based on how well-supported each claim is in the source.`;
+
+      const result = await ai.completeStructured<{
+        claims: Array<{
+          text: string;
+          type: 'fact' | 'opinion' | 'statistic' | 'experience';
+          confidence: number;
+          evidence: string[];
+        }>;
+      }>(prompt, {}, { temperature: 0.3 });
+
+      return result.claims.map(claim => ({
+        id: uuidv4(),
+        text: claim.text,
+        sourceId: source.id,
+        type: claim.type,
+        confidence: claim.confidence,
+        status: claim.confidence > 0.7 ? 'supported' : claim.confidence > 0.4 ? 'contested' : 'unsupported',
+        evidence: claim.evidence
+      }));
+    } catch (error) {
+      console.error('Failed to extract claims:', error);
+      return [];
+    }
   }
 
   /**
