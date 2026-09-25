@@ -1,5 +1,6 @@
 import { newDb } from 'pg-mem';
 import { Pool } from 'pg';
+import { setPool } from '../server/config/database';
 
 // Create in-memory PostgreSQL database
 const db = newDb({
@@ -32,6 +33,9 @@ export const testPool = {
     // No-op for in-memory database
   },
 } as unknown as Pool;
+
+// Inject the test pool into the server's database configuration
+setPool(testPool);
 
 // Function to run migrations against the in-memory database
 export async function runMigrations() {

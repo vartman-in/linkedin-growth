@@ -8,20 +8,41 @@ const __dirname = path.dirname(__filename);
 
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
-const databaseUrl = process.env.DATABASE_URL;
+// For test environment, we'll use a mock pool that can be overridden
+let currentPool: Pool | null = null;
 
-if (!databaseUrl) {
-  throw new Error('DATABASE_URL environment variable is required');
+export function setPool(pool: Pool) {
+  currentPool = pool;
 }
 
-export const pool = new Pool({
-  connectionString: databaseUrl,
-});
+export function getPool(): Pool {
+  if (currentPool) {
+    return currentPool;
+  }
+  
+  const databaseUrl = process.env.DATABASE_URL;
+  
+  if (!databaseUrl) {
+    throw new Error('DATABASE_URL environment variable is required');
+  }
+  
+  currentPool = new Pool({
+    connectionString: databaseUrl,
+  });
+  
+  return currentPool;
+}
 
-export const getPool = () => pool;
-
-export const testPool = new Pool({
-  connectionString: process.env.DATABASE_URL_TEST || databaseUrl,
-});
-
-export const getTestPool = () => testPool;
+export const pool = {
+  query: async (text: string, params?: any[]) => {
+    return getPool().query(text, params);
+  },
+  connect: async () => {
+    return getPool().connect();
+  },
+  end: async () => {
+    if (currentPool) {
+      await currentPool.end();
+    }
+  }
+};
