@@ -12,7 +12,10 @@ import workspaceRoutes from './routes/workspace.routes';
 import profileRoutes from './routes/profile.routes';
 import icpRoutes from './routes/icp.routes';
 import contentRoutes from './routes/content.routes';
+import contentIdeasRoutes from './routes/content-ideas.routes';
 import leadRoutes from './routes/lead.routes';
+import salesMachineRoutes from './routes/sales-machine.routes';
+import intelligenceRoutes from './routes/intelligence.routes';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -42,7 +45,10 @@ app.use('/api/v1/workspaces', workspaceRoutes);
 app.use('/api/v1/profiles', profileRoutes);
 app.use('/api/v1/icps', icpRoutes);
 app.use('/api/v1/content', contentRoutes);
+app.use('/api/v1/content-ideas', contentIdeasRoutes);
 app.use('/api/v1/leads', leadRoutes);
+app.use('/api/v1/sales', salesMachineRoutes);
+app.use('/api/v1/intelligence', intelligenceRoutes);
 
 // Root route
 app.get('/', (req, res) => {
