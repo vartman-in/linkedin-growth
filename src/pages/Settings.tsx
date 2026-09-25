@@ -22,8 +22,8 @@ export default function SettingsPage() {
   ];
 
   const handleSave = () => {
-    // Note: Settings are not yet persisted. This is a UI-only preview.
-    // Persistence will be implemented when the backend is connected.
+    // Settings are not yet persisted - changes only exist in this session
+    // Persistence will be implemented when the backend is connected
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
@@ -43,7 +43,7 @@ export default function SettingsPage() {
           }`}
         >
           {saved ? <CheckCircle2 className="w-4 h-4" /> : <Save className="w-4 h-4" />}
-          {saved ? 'Saved!' : 'Save Changes'}
+          {saved ? 'Session only' : 'Save Changes'}
         </button>
       </div>
 

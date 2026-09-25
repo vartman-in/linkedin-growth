@@ -70,6 +70,37 @@ function OverviewPanel() {
   const { state } = useApp();
   const metrics = state.brainMetrics;
 
+  // Check if we have any data
+  const hasData = metrics.audienceBrain.segments > 0 ||
+                  metrics.researchBrain.signalsCollected > 0 ||
+                  metrics.ideaBrain.ideasGenerated > 0 ||
+                  metrics.analyticsBrain.postsTracked > 0 ||
+                  metrics.learningBrain.patternsLearned > 0;
+
+  if (!hasData) {
+    return (
+      <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
+        <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <Brain className="w-8 h-8 text-gray-400" />
+        </div>
+        <h3 className="text-lg font-semibold text-gray-800 mb-2">No learning data yet</h3>
+        <p className="text-sm text-gray-500 max-w-md mx-auto mb-6">
+          The Content Intelligence OS will begin tracking patterns once you publish content and collect performance data.
+        </p>
+        <div className="bg-gray-50 rounded-lg p-4 text-left max-w-sm mx-auto">
+          <p className="text-xs font-medium text-gray-700 mb-2">The system will track:</p>
+          <ul className="text-xs text-gray-600 space-y-1">
+            <li>• Which content performs best</li>
+            <li>• Audience engagement patterns</li>
+            <li>• Topic effectiveness</li>
+            <li>• Posting time optimization</li>
+            <li>• Format preferences</li>
+          </ul>
+        </div>
+      </div>
+    );
+  }
+
   const brains = [
     {
       name: 'Business Brain',
