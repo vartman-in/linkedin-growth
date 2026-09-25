@@ -25,35 +25,10 @@ const workspaceMemberRepo = new WorkspaceMemberRepository(pool);
 const authService = new AuthService(pool);
 
 /**
- * DEPRECATED: Development-only middleware that sets workspace context from environment variables.
- * This is insecure and should NOT be used. Kept only for backward compatibility during migration.
- * @deprecated Use authenticateAndSetWorkspace instead
+ * REMOVED: devWorkspaceContext has been removed for security.
+ * All routes must use authenticateAndSetWorkspace instead.
+ * This prevents any bypass of JWT authentication.
  */
-export function devWorkspaceContext(req: Request, res: Response, next: NextFunction): void {
-  // SECURITY WARNING: This bypasses JWT authentication
-  // Only allow in explicit development mode
-  if (process.env.NODE_ENV !== 'development') {
-    throw new UnauthorizedError('Development context not allowed in production');
-  }
-
-  const devWorkspaceId = process.env.DEV_WORKSPACE_ID;
-  const devUserId = process.env.DEV_USER_ID;
-
-  if (!devWorkspaceId || !devUserId) {
-    throw new UnauthorizedError('Development workspace context not configured');
-  }
-
-  req.workspaceId = devWorkspaceId;
-  req.userId = devUserId;
-  req.userRole = 'OWNER';
-  req.auth = {
-    userId: devUserId,
-    workspaceId: devWorkspaceId,
-    role: 'OWNER'
-  };
-
-  next();
-}
 
 /**
  * Secure authentication middleware that validates JWT and sets workspace context
@@ -82,34 +57,32 @@ export async function authenticateAndSetWorkspace(req: Request, res: Response, n
 
     const user = userResult.rows[0];
 
-    // 3. Determine workspace - check for explicit workspace header, otherwise use user's first workspace
-    let workspaceId = req.headers['x-workspace-id'] as string;
+    // 3. Get user's authorized workspaces
+    const workspaces = await authService.getUserWorkspaces(user.id);
     
-    if (!workspaceId) {
-      // Get user's workspaces
-      const workspaces = await authService.getUserWorkspaces(user.id);
-      
-      if (workspaces.length === 0) {
-        throw new ForbiddenError('User has no workspace access');
-      }
-      
-      // Use first workspace as default
-      workspaceId = workspaces[0].id;
+    if (workspaces.length === 0) {
+      throw new ForbiddenError('User has no workspace access');
     }
+    
+    // 4. Determine workspace from authenticated membership only
+    // SECURITY: Never trust client-supplied workspace IDs for authorization
+    // Use the first workspace if user has access to multiple
+    // TODO: Implement workspace selection UI for users with multiple workspaces
+    const workspaceId = workspaces[0].id;
 
-    // 4. Verify user has access to this workspace
+    // 5. Verify user has access to this workspace (defense in depth)
     const hasAccess = await authService.hasWorkspaceAccess(user.id, workspaceId);
     if (!hasAccess) {
       throw new ForbiddenError('Access denied to workspace');
     }
 
-    // 5. Get user's role in workspace
+    // 6. Get user's role in workspace
     const role = await authService.getWorkspaceRole(user.id, workspaceId);
     if (!role) {
       throw new ForbiddenError('No role assigned in workspace');
     }
 
-    // 6. Set authenticated context
+    // 7. Set authenticated context
     req.userId = user.id;
     req.workspaceId = workspaceId;
     req.userRole = role;
