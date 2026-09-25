@@ -6,7 +6,7 @@ import {
   CheckCircle2, XCircle, AlertCircle, HelpCircle,
   Zap, TrendingUp, Clock, ArrowRight, Star
 } from 'lucide-react';
-import { mockTrends } from '../data';
+// Trends come from state (currently empty until research system is implemented)
 
 type LeadsTab = 'discover' | 'research' | 'trends';
 
@@ -19,7 +19,7 @@ export default function LeadsPage() {
   const tabs = [
     { id: 'discover' as const, label: 'Prospects', icon: Search, count: state.prospects.length },
     { id: 'research' as const, label: 'Research', icon: FileSearch, count: 0 },
-    { id: 'trends' as const, label: 'Trend Intelligence', icon: TrendingUp, count: mockTrends.length },
+    { id: 'trends' as const, label: 'Trend Intelligence', icon: TrendingUp, count: 0 },
   ];
 
   return (
@@ -256,63 +256,15 @@ export default function LeadsPage() {
 }
 
 function TrendsPanel() {
-  const freshnessColors = {
-    hot: 'bg-red-100 text-red-700',
-    warm: 'bg-orange-100 text-orange-700',
-    emerging: 'bg-blue-100 text-blue-700',
-  };
-
   return (
-    <div className="space-y-4">
-      <div className="bg-warning-light/50 border border-warning/20 rounded-xl p-4 mb-4">
-        <div className="flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 text-warning" />
-          <p className="text-sm text-gray-700">
-            <strong>Note:</strong> Trends are not content ideas. Each trend needs analysis to determine if it fits your audience and voice.
-          </p>
-        </div>
+    <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
+      <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+        <TrendingUp className="w-8 h-8 text-gray-400" />
       </div>
-      {mockTrends.map((trend, idx) => (
-        <div key={trend.id} className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-all animate-slide-in" style={{ animationDelay: `${idx * 100}ms` }}>
-          <div className="flex items-start justify-between mb-3">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <h4 className="text-base font-semibold text-gray-800">{trend.topic}</h4>
-                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${freshnessColors[trend.freshness]}`}>
-                  {trend.freshness}
-                </span>
-              </div>
-            </div>
-            <ArrowRight className="w-4 h-4 text-gray-300" />
-          </div>
-          <div className="space-y-3">
-            <div>
-              <p className="text-xs font-medium text-gray-500 mb-1">Why this matters</p>
-              <p className="text-sm text-gray-700">{trend.whyItMatters}</p>
-            </div>
-            <div>
-              <p className="text-xs font-medium text-gray-500 mb-1">Audience fit</p>
-              <p className="text-sm text-gray-700">{trend.audienceFit}</p>
-            </div>
-            <div>
-              <p className="text-xs font-medium text-gray-500 mb-1.5">Possible angles</p>
-              <div className="flex flex-wrap gap-1.5">
-                {trend.angles.map((angle, i) => (
-                  <span key={i} className="text-xs bg-primary-light text-primary px-2 py-1 rounded-md">{angle}</span>
-                ))}
-              </div>
-            </div>
-            <div>
-              <p className="text-xs font-medium text-gray-500 mb-1.5">Evidence</p>
-              <div className="flex flex-wrap gap-1.5">
-                {trend.evidence.map((ev, i) => (
-                  <span key={i} className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-md">{ev}</span>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      ))}
+      <h3 className="text-lg font-semibold text-gray-800 mb-2">No trend intelligence yet</h3>
+      <p className="text-sm text-gray-500 max-w-md mx-auto">
+        Trend intelligence will become available after configuring your ICP and connecting data sources. The system will then surface relevant topics based on your audience and content pillars.
+      </p>
     </div>
   );
 }

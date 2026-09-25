@@ -22,6 +22,8 @@ export default function SettingsPage() {
   ];
 
   const handleSave = () => {
+    // Note: Settings are not yet persisted. This is a UI-only preview.
+    // Persistence will be implemented when the backend is connected.
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
@@ -79,26 +81,26 @@ export default function SettingsPage() {
 }
 
 function ProfileSettings() {
-  const { state } = useApp();
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-5">
       <h3 className="text-lg font-semibold text-gray-800">Profile</h3>
+      <p className="text-sm text-gray-500">Complete your profile to personalize your Growth Operator. Fields marked with * are recommended.</p>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="text-xs font-medium text-gray-500 mb-1 block">Name</label>
-          <input type="text" defaultValue="Ankit" className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
+          <label className="text-xs font-medium text-gray-500 mb-1 block">Name *</label>
+          <input type="text" placeholder="Your name" className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
         </div>
         <div>
           <label className="text-xs font-medium text-gray-500 mb-1 block">Role</label>
-          <input type="text" defaultValue="Growth Lead" className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
+          <input type="text" placeholder="e.g. Founder, Engineering Lead" className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
         </div>
         <div className="md:col-span-2">
           <label className="text-xs font-medium text-gray-500 mb-1 block">LinkedIn Headline</label>
-          <input type="text" defaultValue="Building AI-powered growth systems | Engineering Leader" className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
+          <input type="text" placeholder="Your LinkedIn headline" className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
         </div>
         <div className="md:col-span-2">
           <label className="text-xs font-medium text-gray-500 mb-1 block">Bio</label>
-          <textarea defaultValue="I help engineering teams build better workflows and adopt AI effectively. 12+ years in software development." className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm h-24 resize-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
+          <textarea placeholder="Brief description of your expertise and what you share about..." className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm h-24 resize-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
         </div>
       </div>
       <div>
@@ -108,30 +110,28 @@ function ProfileSettings() {
         </h4>
         <div className="space-y-2">
           {[
-            { name: 'LinkedIn', status: 'connected', desc: 'Publishing & Analytics' },
-            { name: 'CRM', status: 'not connected', desc: 'Pipeline management' },
-            { name: 'Calendar', status: 'connected', desc: 'Scheduling meetings' },
+            { name: 'LinkedIn', desc: 'Publishing & Analytics', available: false },
+            { name: 'AI Provider', desc: 'Content generation', available: false },
+            { name: 'CRM', desc: 'Pipeline management', available: false },
           ].map(integration => (
             <div key={integration.name} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
               <div>
                 <p className="text-sm font-medium text-gray-800">{integration.name}</p>
                 <p className="text-xs text-gray-500">{integration.desc}</p>
               </div>
-              <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                integration.status === 'connected' ? 'bg-success-light text-success' : 'bg-gray-200 text-gray-500'
-              }`}>
-                {integration.status}
+              <span className="text-xs px-2 py-1 rounded-full font-medium bg-gray-200 text-gray-500">
+                Coming soon
               </span>
             </div>
           ))}
         </div>
+        <p className="text-xs text-gray-400 mt-2">Integration setup will be available in a future phase.</p>
       </div>
     </div>
   );
 }
 
 function VoiceSettings() {
-  const { state } = useApp();
   const [newBanned, setNewBanned] = useState('');
 
   return (
@@ -144,7 +144,7 @@ function VoiceSettings() {
         <div className="flex flex-wrap gap-2">
           {['direct', 'conversational', 'analytical', 'technical', 'humorous', 'serious', 'empathetic', 'authoritative'].map(tone => (
             <label key={tone} className="flex items-center gap-1.5 px-3 py-1.5 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 has-[:checked]:bg-primary-light has-[:checked]:border-primary">
-              <input type="checkbox" defaultChecked={state.voiceProfile.tone.includes(tone)} className="rounded text-primary" />
+              <input type="checkbox" className="rounded text-primary" />
               <span className="text-sm text-gray-700">{tone}</span>
             </label>
           ))}
@@ -157,9 +157,7 @@ function VoiceSettings() {
           {['short', 'mixed', 'long-form'].map(rhythm => (
             <button
               key={rhythm}
-              className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all ${
-                state.voiceProfile.rhythm === rhythm ? 'bg-primary-light border-primary text-primary' : 'border-gray-200 text-gray-600 hover:bg-gray-50'
-              }`}
+              className="px-4 py-2 rounded-lg text-sm font-medium border border-gray-200 text-gray-600 hover:bg-gray-50 transition-all"
             >
               {rhythm}
             </button>
@@ -170,26 +168,13 @@ function VoiceSettings() {
       <div>
         <label className="text-xs font-medium text-gray-500 mb-2 block">Preferred vocabulary</label>
         <div className="flex flex-wrap gap-1.5">
-          {state.voiceProfile.vocabulary.map((word, idx) => (
-            <span key={idx} className="text-xs bg-primary-light text-primary px-2 py-1 rounded-md flex items-center gap-1">
-              {word}
-              <X className="w-3 h-3 cursor-pointer hover:text-danger" />
-            </span>
-          ))}
-          <input type="text" placeholder="Add term..." className="text-xs px-2 py-1 border border-gray-200 rounded-md w-24 focus:outline-none focus:border-primary" />
+          <input type="text" placeholder="Add a preferred term..." className="text-xs px-2 py-1 border border-gray-200 rounded-md w-40 focus:outline-none focus:border-primary" />
         </div>
+        <p className="text-xs text-gray-400 mt-1">Terms you commonly use and want the AI to include.</p>
       </div>
 
       <div>
         <label className="text-xs font-medium text-gray-500 mb-2 block">Banned words & phrases</label>
-        <div className="flex flex-wrap gap-1.5 mb-2">
-          {state.voiceProfile.banned.map((word, idx) => (
-            <span key={idx} className="text-xs bg-danger-light text-danger px-2 py-1 rounded-md flex items-center gap-1">
-              {word}
-              <X className="w-3 h-3 cursor-pointer hover:text-danger" />
-            </span>
-          ))}
-        </div>
         <div className="flex gap-2">
           <input
             type="text"
@@ -200,6 +185,7 @@ function VoiceSettings() {
           />
           <button className="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-sm hover:bg-gray-200">Add</button>
         </div>
+        <p className="text-xs text-gray-400 mt-1">Words and phrases the AI should never use in your content.</p>
       </div>
 
       <div>
@@ -207,7 +193,7 @@ function VoiceSettings() {
         <div className="flex flex-wrap gap-2">
           {['short paragraphs', 'bullet points', 'whitespace', 'numbered lists', 'minimal emojis', 'bold key phrases'].map(format => (
             <label key={format} className="flex items-center gap-1.5 px-3 py-1.5 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 has-[:checked]:bg-primary-light has-[:checked]:border-primary">
-              <input type="checkbox" defaultChecked={state.voiceProfile.formatting.includes(format)} className="rounded text-primary" />
+              <input type="checkbox" className="rounded text-primary" />
               <span className="text-sm text-gray-700">{format}</span>
             </label>
           ))}
@@ -218,7 +204,6 @@ function VoiceSettings() {
 }
 
 function AudienceSettings() {
-  const { state } = useApp();
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-5">
       <h3 className="text-lg font-semibold text-gray-800">Ideal Customer Profile (ICP)</h3>
@@ -227,61 +212,46 @@ function AudienceSettings() {
       <div>
         <label className="text-xs font-medium text-gray-500 mb-2 block">Target Roles</label>
         <div className="flex flex-wrap gap-1.5">
-          {state.icp.roles.map((role, idx) => (
-            <span key={idx} className="text-xs bg-accent-light text-accent px-2.5 py-1 rounded-md">{role}</span>
-          ))}
-          <input type="text" placeholder="+ Add role" className="text-xs px-2 py-1 border border-gray-200 rounded-md w-24 focus:outline-none focus:border-accent" />
+          <input type="text" placeholder="+ Add role" className="text-xs px-2 py-1 border border-gray-200 rounded-md w-40 focus:outline-none focus:border-accent" />
         </div>
       </div>
 
       <div>
         <label className="text-xs font-medium text-gray-500 mb-2 block">Industries</label>
         <div className="flex flex-wrap gap-1.5">
-          {state.icp.industries.map((ind, idx) => (
-            <span key={idx} className="text-xs bg-primary-light text-primary px-2.5 py-1 rounded-md">{ind}</span>
-          ))}
+          <input type="text" placeholder="+ Add industry" className="text-xs px-2 py-1 border border-gray-200 rounded-md w-40 focus:outline-none focus:border-primary" />
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="text-xs font-medium text-gray-500 mb-1 block">Company Size</label>
-          <input type="text" defaultValue={state.icp.companySize} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent" />
+          <input type="text" placeholder="e.g. 10-200 employees" className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent" />
         </div>
         <div>
           <label className="text-xs font-medium text-gray-500 mb-1 block">Geography</label>
-          <div className="flex flex-wrap gap-1.5">
-            {state.icp.geography.map((geo, idx) => (
-              <span key={idx} className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-md">{geo}</span>
-            ))}
-          </div>
+          <input type="text" placeholder="+ Add location" className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent" />
         </div>
       </div>
 
       <div>
         <label className="text-xs font-medium text-gray-500 mb-2 block">Pain Areas</label>
         <div className="flex flex-wrap gap-1.5">
-          {state.icp.painAreas.map((pain, idx) => (
-            <span key={idx} className="text-xs bg-warning-light text-warning px-2.5 py-1 rounded-md">{pain}</span>
-          ))}
+          <input type="text" placeholder="+ Add pain area" className="text-xs px-2 py-1 border border-gray-200 rounded-md w-40 focus:outline-none focus:border-warning" />
         </div>
       </div>
 
       <div>
         <label className="text-xs font-medium text-gray-500 mb-2 block">Buying Triggers</label>
         <div className="flex flex-wrap gap-1.5">
-          {state.icp.buyingTriggers.map((trigger, idx) => (
-            <span key={idx} className="text-xs bg-success-light text-success px-2.5 py-1 rounded-md">{trigger}</span>
-          ))}
+          <input type="text" placeholder="+ Add trigger" className="text-xs px-2 py-1 border border-gray-200 rounded-md w-40 focus:outline-none focus:border-success" />
         </div>
       </div>
 
       <div>
         <label className="text-xs font-medium text-gray-500 mb-2 block">Exclusions</label>
         <div className="flex flex-wrap gap-1.5">
-          {state.icp.exclusions.map((exc, idx) => (
-            <span key={idx} className="text-xs bg-danger-light text-danger px-2.5 py-1 rounded-md">{exc}</span>
-          ))}
+          <input type="text" placeholder="+ Add exclusion" className="text-xs px-2 py-1 border border-gray-200 rounded-md w-40 focus:outline-none focus:border-danger" />
         </div>
       </div>
     </div>
@@ -289,34 +259,14 @@ function AudienceSettings() {
 }
 
 function ContentSettings() {
-  const { state } = useApp();
   return (
     <div className="space-y-4">
       <div className="bg-white rounded-xl border border-gray-200 p-6">
         <h3 className="text-lg font-semibold text-gray-800 mb-1">Content Pillars</h3>
         <p className="text-sm text-gray-500 mb-4">Define your content themes. Each pillar guides topic selection and format preferences.</p>
         <div className="space-y-3">
-          {state.pillars.map(pillar => (
-            <div key={pillar.id} className="border border-gray-200 rounded-xl p-4">
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="text-sm font-semibold text-gray-800">{pillar.name}</h4>
-                <span className="text-xs text-gray-400">{pillar.subtopics.length} subtopics</span>
-              </div>
-              <p className="text-xs text-gray-500 mb-2">{pillar.purpose}</p>
-              <div className="flex flex-wrap gap-1.5">
-                {pillar.subtopics.map((topic, idx) => (
-                  <span key={idx} className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">{topic}</span>
-                ))}
-              </div>
-              <div className="mt-2 flex flex-wrap gap-1.5">
-                {pillar.preferredFormats.map((format, idx) => (
-                  <span key={idx} className="text-xs bg-primary-light text-primary px-2 py-0.5 rounded">{format}</span>
-                ))}
-              </div>
-            </div>
-          ))}
           <button className="w-full py-3 border-2 border-dashed border-gray-200 rounded-xl text-sm text-gray-400 hover:border-primary hover:text-primary transition-colors flex items-center justify-center gap-2">
-            <Plus className="w-4 h-4" /> Add Pillar
+            <Plus className="w-4 h-4" /> Add Your First Pillar
           </button>
         </div>
       </div>
@@ -325,7 +275,6 @@ function ContentSettings() {
 }
 
 function EvidenceSettings() {
-  const { state } = useApp();
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-5">
       <h3 className="text-lg font-semibold text-gray-800">Evidence & Receipts</h3>
@@ -333,32 +282,16 @@ function EvidenceSettings() {
 
       <div>
         <label className="text-xs font-medium text-gray-500 mb-2 block">Verified Receipts</label>
-        <div className="space-y-2">
-          {state.voiceProfile.receipts.map((receipt, idx) => (
-            <div key={idx} className="flex items-center gap-2 p-2.5 bg-success-light/50 border border-success/20 rounded-lg">
-              <CheckCircle2 className="w-4 h-4 text-success shrink-0" />
-              <p className="text-sm text-gray-700">{receipt}</p>
-            </div>
-          ))}
-        </div>
-        <button className="mt-3 flex items-center gap-2 text-sm text-primary font-medium hover:text-primary-dark">
-          <Plus className="w-4 h-4" /> Add Receipt
+        <p className="text-sm text-gray-500 mb-3">Add achievements, case studies, or verified facts that you want the AI to reference.</p>
+        <button className="flex items-center gap-2 text-sm text-primary font-medium hover:text-primary-dark">
+          <Plus className="w-4 h-4" /> Add Your First Receipt
         </button>
       </div>
 
       <div>
         <label className="text-xs font-medium text-gray-500 mb-2 block">Case Studies</label>
-        <div className="space-y-2">
-          <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-            <p className="text-sm font-medium text-gray-800">AI Workflow Implementation</p>
-            <p className="text-xs text-gray-500 mt-1">Helped 12 teams implement AI workflows with 34% average productivity improvement</p>
-          </div>
-          <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-            <p className="text-sm font-medium text-gray-800">Focus Blocks Experiment</p>
-            <p className="text-xs text-gray-500 mt-1">Reduced context switching by implementing 3-hour focus blocks, twice daily</p>
-          </div>
-        </div>
-        <button className="mt-3 flex items-center gap-2 text-sm text-primary font-medium hover:text-primary-dark">
+        <p className="text-sm text-gray-500 mb-3">Document real projects, results, and outcomes.</p>
+        <button className="flex items-center gap-2 text-sm text-primary font-medium hover:text-primary-dark">
           <Plus className="w-4 h-4" /> Add Case Study
         </button>
       </div>

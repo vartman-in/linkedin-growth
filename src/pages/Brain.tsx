@@ -249,6 +249,20 @@ function OverviewPanel() {
 function AudiencePanel() {
   const { state } = useApp();
 
+  if (state.audienceSegments.length === 0) {
+    return (
+      <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
+        <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <Users className="w-8 h-8 text-gray-400" />
+        </div>
+        <h3 className="text-lg font-semibold text-gray-800 mb-2">No audience segments yet</h3>
+        <p className="text-sm text-gray-500 max-w-md mx-auto">
+          The Audience Brain will learn about your audience segments as you publish content and track engagement. Define your ICP in Settings to get started.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
@@ -353,6 +367,20 @@ function AudiencePanel() {
 function ResearchPanel() {
   const { state } = useApp();
 
+  if (state.contentOpportunities.length === 0) {
+    return (
+      <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
+        <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <Search className="w-8 h-8 text-gray-400" />
+        </div>
+        <h3 className="text-lg font-semibold text-gray-800 mb-2">No research opportunities yet</h3>
+        <p className="text-sm text-gray-500 max-w-md mx-auto">
+          The Research Brain will discover and score content opportunities once data sources are connected and your ICP is configured.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       <div className="bg-purple-50 border border-purple-200 rounded-xl p-4 mb-4">
@@ -436,6 +464,20 @@ function ResearchPanel() {
 
 function LearningPanel() {
   const { state } = useApp();
+
+  if (state.learnedPatterns.length === 0 && state.postDNA.length === 0) {
+    return (
+      <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
+        <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <GraduationCap className="w-8 h-8 text-gray-400" />
+        </div>
+        <h3 className="text-lg font-semibold text-gray-800 mb-2">No learning signals yet</h3>
+        <p className="text-sm text-gray-500 max-w-md mx-auto">
+          Learning will appear after the system has real content, sales or user-feedback data. Publish content and track performance to start building patterns.
+        </p>
+      </div>
+    );
+  }
 
   const confidenceColors = {
     high: 'bg-success-light text-success border-success/20',
@@ -563,6 +605,20 @@ function LearningPanel() {
 function ExperimentsPanel() {
   const { state } = useApp();
 
+  if (state.experiments.length === 0) {
+    return (
+      <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
+        <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <Activity className="w-8 h-8 text-gray-400" />
+        </div>
+        <h3 className="text-lg font-semibold text-gray-800 mb-2">No experiments yet</h3>
+        <p className="text-sm text-gray-500 max-w-md mx-auto">
+          The brain will design controlled experiments once it has enough data to form hypotheses about what works best for your audience.
+        </p>
+      </div>
+    );
+  }
+
   const statusColors = {
     planned: 'bg-gray-100 text-gray-600',
     running: 'bg-blue-100 text-blue-700',
@@ -645,6 +701,20 @@ function ExperimentsPanel() {
 function ReportPanel() {
   const { state } = useApp();
   const report = state.weeklyReport;
+
+  if (!report.week && report.postsPublished === 0) {
+    return (
+      <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
+        <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <BarChart3 className="w-8 h-8 text-gray-400" />
+        </div>
+        <h3 className="text-lg font-semibold text-gray-800 mb-2">No weekly report yet</h3>
+        <p className="text-sm text-gray-500 max-w-md mx-auto">
+          Weekly intelligence reports will be generated after you've published content and the system has collected enough performance data to analyze patterns.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5">

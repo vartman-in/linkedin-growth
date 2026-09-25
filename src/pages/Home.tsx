@@ -1,180 +1,187 @@
 import { useApp } from '../store';
 import {
   FileText, Users, MessageSquare, ArrowRight,
-  TrendingUp, AlertCircle, CheckCircle2, Clock,
-  Lightbulb, Target, Zap, Brain
+  CheckCircle2, Lightbulb, Target, Settings,
+  Zap, User, Link2
 } from 'lucide-react';
 
 export default function HomePage() {
   const { state, dispatch } = useApp();
 
-  const contentReady = state.drafts.filter(d => d.status === 'review').length;
-  const ideasGenerated = state.ideas.filter(i => i.status === 'new' || i.status === 'researching').length;
-  const sourcesToVerify = state.drafts.filter(d => d.quality.overall === 'REVIEW_REQUIRED').length;
+  const hasProfile = state.voiceProfile.tone.length > 0;
+  const hasICP = state.icp.roles.length > 0;
+  const hasPillars = state.pillars.length > 0;
+  const hasContent = state.ideas.length > 0;
+  const hasProspects = state.prospects.length > 0;
+  const hasConversations = state.conversations.length > 0;
 
-  const prospectsResearched = state.prospects.filter(p => p.status === 'researched' || p.status === 'qualified').length;
-  const repliesNeeded = state.conversations.filter(c => c.unread).length;
-  const followUpsDue = state.prospects.filter(p => p.status === 'contacted').length;
-
-  const recommendations = [
+  // Setup actions - only show what's actually needed
+  const setupActions = [
     {
-      id: '1',
-      title: 'Review today\'s post draft',
-      reason: '1 post passed quality validation and is ready for your approval',
-      icon: CheckCircle2,
-      color: 'text-success',
-      bg: 'bg-success-light',
-      action: () => { dispatch({ type: 'SET_PAGE', page: 'content' }); dispatch({ type: 'SELECT_DRAFT', id: 'd1' }); }
-    },
-    {
-      id: '2',
-      title: 'Reply to Sarah Chen',
-      reason: 'Meeting request from VP Engineering at TechFlow AI — high-fit prospect',
-      icon: MessageSquare,
+      id: 'profile',
+      title: 'Complete your profile',
+      reason: 'Your voice, tone, and expertise guide all content generation.',
+      icon: User,
       color: 'text-primary',
       bg: 'bg-primary-light',
-      action: () => { dispatch({ type: 'SET_PAGE', page: 'inbox' }); dispatch({ type: 'SELECT_CONVERSATION', id: 'conv1' }); }
+      done: hasProfile,
+      action: () => dispatch({ type: 'SET_PAGE', page: 'settings' })
     },
     {
-      id: '3',
-      title: 'Create content about AI tool overload',
-      reason: '4 recent prospect conversations mentioned tool complexity as a pain point',
-      icon: Lightbulb,
+      id: 'icp',
+      title: 'Define your ICP',
+      reason: 'Your Ideal Customer Profile guides prospect discovery and content targeting.',
+      icon: Target,
       color: 'text-accent',
       bg: 'bg-accent-light',
-      action: () => dispatch({ type: 'SET_PAGE', page: 'content' })
+      done: hasICP,
+      action: () => dispatch({ type: 'SET_PAGE', page: 'settings' })
     },
     {
-      id: '4',
-      title: 'Research 3 new prospects',
-      reason: 'Trending topic "AI Agent Orchestration" aligns with your ICP and content pillar',
-      icon: Target,
+      id: 'pillars',
+      title: 'Set content pillars',
+      reason: 'Pillars define your content themes and keep your messaging focused.',
+      icon: Lightbulb,
       color: 'text-warning',
       bg: 'bg-warning-light',
-      action: () => dispatch({ type: 'SET_PAGE', page: 'leads' })
+      done: hasPillars,
+      action: () => dispatch({ type: 'SET_PAGE', page: 'settings' })
+    },
+    {
+      id: 'content',
+      title: 'Create your first content idea',
+      reason: 'Start with an idea, URL, or experience to generate your first draft.',
+      icon: FileText,
+      color: 'text-success',
+      bg: 'bg-success-light',
+      done: hasContent,
+      action: () => dispatch({ type: 'SET_PAGE', page: 'content' })
     }
   ];
+
+  // Real workspace status counts
+  const contentReady = state.drafts.filter(d => d.status === 'review').length;
+  const unreadConversations = state.conversations.filter(c => c.unread).length;
 
   return (
     <div className="max-w-6xl mx-auto animate-fade-in">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Good morning, Ankit</h1>
-        <p className="text-gray-500 mt-1">Your Growth Operator — here's what needs your attention today.</p>
+        <h1 className="text-2xl font-bold text-gray-900">Welcome to Growth Operator</h1>
+        <p className="text-gray-500 mt-1">
+          Complete your workspace setup to start building your LinkedIn growth system.
+        </p>
       </div>
 
-      {/* Priority Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
-        {/* Content Card */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-primary-light rounded-lg flex items-center justify-center">
-                <FileText className="w-4 h-4 text-primary" />
-              </div>
-              <h3 className="font-semibold text-gray-800">Content</h3>
+      {/* Workspace Status */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-8 h-8 bg-primary-light rounded-lg flex items-center justify-center">
+              <FileText className="w-4 h-4 text-primary" />
             </div>
-            <button
-              onClick={() => dispatch({ type: 'SET_PAGE', page: 'content' })}
-              className="text-sm text-primary font-medium hover:text-primary-dark flex items-center gap-1"
-            >
-              Review <ArrowRight className="w-3.5 h-3.5" />
-            </button>
+            <h3 className="font-semibold text-gray-800">Content</h3>
           </div>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between py-2 border-b border-gray-100">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-success" />
-                <span className="text-sm text-gray-700">Posts ready for review</span>
+          {hasContent ? (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between py-1.5">
+                <span className="text-sm text-gray-700">Ideas</span>
+                <span className="text-sm font-semibold text-gray-900">{state.ideas.length}</span>
               </div>
-              <span className="text-sm font-semibold text-gray-900">{contentReady}</span>
-            </div>
-            <div className="flex items-center justify-between py-2 border-b border-gray-100">
-              <div className="flex items-center gap-2">
-                <Lightbulb className="w-4 h-4 text-warning" />
-                <span className="text-sm text-gray-700">Ideas generated</span>
+              <div className="flex items-center justify-between py-1.5">
+                <span className="text-sm text-gray-700">Drafts ready for review</span>
+                <span className="text-sm font-semibold text-gray-900">{contentReady}</span>
               </div>
-              <span className="text-sm font-semibold text-gray-900">{ideasGenerated}</span>
             </div>
-            <div className="flex items-center justify-between py-2">
-              <div className="flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 text-danger" />
-                <span className="text-sm text-gray-700">Sources need verification</span>
-              </div>
-              <span className="text-sm font-semibold text-gray-900">{sourcesToVerify}</span>
-            </div>
-          </div>
+          ) : (
+            <p className="text-sm text-gray-500">No content yet. Create your first idea to get started.</p>
+          )}
         </div>
 
-        {/* Sales Card */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-accent-light rounded-lg flex items-center justify-center">
-                <Users className="w-4 h-4 text-accent" />
-              </div>
-              <h3 className="font-semibold text-gray-800">Sales</h3>
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-8 h-8 bg-accent-light rounded-lg flex items-center justify-center">
+              <Users className="w-4 h-4 text-accent" />
             </div>
-            <button
-              onClick={() => dispatch({ type: 'SET_PAGE', page: 'leads' })}
-              className="text-sm text-accent font-medium hover:text-accent/80 flex items-center gap-1"
-            >
-              Review <ArrowRight className="w-3.5 h-3.5" />
-            </button>
+            <h3 className="font-semibold text-gray-800">Sales</h3>
           </div>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between py-2 border-b border-gray-100">
-              <div className="flex items-center gap-2">
-                <Users className="w-4 h-4 text-success" />
-                <span className="text-sm text-gray-700">Prospects researched</span>
+          {hasProspects ? (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between py-1.5">
+                <span className="text-sm text-gray-700">Prospects</span>
+                <span className="text-sm font-semibold text-gray-900">{state.prospects.length}</span>
               </div>
-              <span className="text-sm font-semibold text-gray-900">{prospectsResearched}</span>
-            </div>
-            <div className="flex items-center justify-between py-2 border-b border-gray-100">
-              <div className="flex items-center gap-2">
-                <MessageSquare className="w-4 h-4 text-primary" />
-                <span className="text-sm text-gray-700">Replies need attention</span>
+              <div className="flex items-center justify-between py-1.5">
+                <span className="text-sm text-gray-700">Unread conversations</span>
+                <span className="text-sm font-semibold text-gray-900">{unreadConversations}</span>
               </div>
-              <span className="text-sm font-semibold text-gray-900">{repliesNeeded}</span>
             </div>
-            <div className="flex items-center justify-between py-2">
-              <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-warning" />
-                <span className="text-sm text-gray-700">Follow-ups due</span>
-              </div>
-              <span className="text-sm font-semibold text-gray-900">{followUpsDue}</span>
+          ) : (
+            <p className="text-sm text-gray-500">No prospects yet. Configure your ICP to discover relevant prospects.</p>
+          )}
+        </div>
+
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-8 h-8 bg-warning-light rounded-lg flex items-center justify-center">
+              <MessageSquare className="w-4 h-4 text-warning" />
             </div>
+            <h3 className="font-semibold text-gray-800">Inbox</h3>
           </div>
+          {hasConversations ? (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between py-1.5">
+                <span className="text-sm text-gray-700">Conversations</span>
+                <span className="text-sm font-semibold text-gray-900">{state.conversations.length}</span>
+              </div>
+              <div className="flex items-center justify-between py-1.5">
+                <span className="text-sm text-gray-700">Unread</span>
+                <span className="text-sm font-semibold text-gray-900">{unreadConversations}</span>
+              </div>
+            </div>
+          ) : (
+            <p className="text-sm text-gray-500">No conversations yet. Connect LinkedIn to monitor messages.</p>
+          )}
         </div>
       </div>
 
-      {/* Recommended Actions */}
+      {/* Setup Actions */}
       <div className="mb-8">
         <div className="flex items-center gap-2 mb-4">
           <Zap className="w-5 h-5 text-primary" />
-          <h3 className="text-lg font-semibold text-gray-800">Recommended Actions</h3>
+          <h3 className="text-lg font-semibold text-gray-800">Workspace Setup</h3>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {recommendations.map((rec, idx) => {
-            const Icon = rec.icon;
+          {setupActions.map((action, idx) => {
+            const Icon = action.icon;
             return (
               <button
-                key={rec.id}
-                onClick={rec.action}
-                className="bg-white rounded-xl border border-gray-200 p-4 text-left hover:shadow-md hover:border-primary/30 transition-all group"
+                key={action.id}
+                onClick={action.action}
+                className={`bg-white rounded-xl border p-4 text-left hover:shadow-md transition-all group ${
+                  action.done ? 'border-success/30 bg-success-light/30' : 'border-gray-200 hover:border-primary/30'
+                }`}
                 style={{ animationDelay: `${idx * 100}ms` }}
               >
                 <div className="flex items-start gap-3">
-                  <div className={`w-9 h-9 ${rec.bg} rounded-lg flex items-center justify-center shrink-0`}>
-                    <Icon className={`w-4.5 h-4.5 ${rec.color}`} />
+                  <div className={`w-9 h-9 ${action.bg} rounded-lg flex items-center justify-center shrink-0`}>
+                    {action.done ? (
+                      <CheckCircle2 className="w-4.5 h-4.5 text-success" />
+                    ) : (
+                      <Icon className={`w-4.5 h-4.5 ${action.color}`} />
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h4 className="text-sm font-semibold text-gray-800 group-hover:text-primary transition-colors">
-                      {rec.title}
+                    <h4 className={`text-sm font-semibold group-hover:text-primary transition-colors ${
+                      action.done ? 'text-success' : 'text-gray-800'
+                    }`}>
+                      {action.done ? '✓ ' : ''}{action.title}
                     </h4>
-                    <p className="text-xs text-gray-500 mt-1 leading-relaxed">{rec.reason}</p>
+                    <p className="text-xs text-gray-500 mt-1 leading-relaxed">{action.reason}</p>
                   </div>
-                  <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-primary transition-colors shrink-0 mt-0.5" />
+                  {!action.done && (
+                    <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-primary transition-colors shrink-0 mt-0.5" />
+                  )}
                 </div>
               </button>
             );
@@ -182,68 +189,30 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Brain Learning Summary */}
-      <div className="bg-gradient-to-br from-primary/5 to-accent/5 rounded-xl border border-primary/10 p-6 mb-6">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <Zap className="w-5 h-5 text-primary" />
-            <h3 className="font-semibold text-gray-800">Brain Intelligence</h3>
-          </div>
-          <button
-            onClick={() => dispatch({ type: 'SET_PAGE', page: 'brain' })}
-            className="text-xs text-primary font-medium hover:text-primary-dark flex items-center gap-1"
-          >
-            View Full Report <ArrowRight className="w-3 h-3" />
-          </button>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-          <div className="bg-white/70 rounded-lg p-3 text-center">
-            <div className="text-lg font-bold text-primary">{state.brainMetrics.researchBrain.opportunitiesFound}</div>
-            <div className="text-[10px] text-gray-500">Opportunities Found</div>
-          </div>
-          <div className="bg-white/70 rounded-lg p-3 text-center">
-            <div className="text-lg font-bold text-accent">{state.brainMetrics.learningBrain.patternsLearned}</div>
-            <div className="text-[10px] text-gray-500">Patterns Learned</div>
-          </div>
-          <div className="bg-white/70 rounded-lg p-3 text-center">
-            <div className="text-lg font-bold text-success">{state.brainMetrics.analyticsBrain.avgPerformanceScore}</div>
-            <div className="text-[10px] text-gray-500">Avg Performance</div>
-          </div>
-          <div className="bg-white/70 rounded-lg p-3 text-center">
-            <div className="text-lg font-bold text-warning">{state.brainMetrics.learningBrain.confidenceLevel}</div>
-            <div className="text-[10px] text-gray-500">Confidence Level</div>
-          </div>
-        </div>
-        <div className="bg-white/50 rounded-lg p-3">
-          <p className="text-xs font-medium text-gray-700 mb-1">🧠 Top Pattern This Week</p>
-          <p className="text-xs text-gray-600">
-            {state.learnedPatterns[0]?.observation || 'No patterns learned yet.'}
-          </p>
-          <p className="text-[10px] text-gray-400 mt-1">
-            Confidence: {state.learnedPatterns[0]?.confidence} • Evidence: {state.learnedPatterns[0]?.sampleSize} posts
-          </p>
-        </div>
-      </div>
-
-      {/* Operating Loop */}
+      {/* Integration Status */}
       <div className="bg-gradient-to-br from-primary/5 to-accent/5 rounded-xl border border-primary/10 p-6">
         <div className="flex items-center gap-2 mb-3">
-          <TrendingUp className="w-5 h-5 text-primary" />
-          <h3 className="font-semibold text-gray-800">Operating Loop Status</h3>
+          <Link2 className="w-5 h-5 text-primary" />
+          <h3 className="font-semibold text-gray-800">Integrations</h3>
         </div>
-        <div className="flex flex-wrap gap-2">
-          {['Research', 'Score', 'Select', 'Create', 'Publish', 'Measure', 'Learn', 'Improve'].map((step, idx) => (
-            <div key={step} className="flex items-center gap-2">
-              <span className={`text-xs px-2.5 py-1 rounded-full font-medium
-                ${idx < 4 ? 'bg-success-light text-success' : idx === 4 ? 'bg-warning-light text-warning' : 'bg-gray-100 text-gray-500'}`}>
-                {step}
-              </span>
-              {idx < 7 && <span className="text-gray-300">→</span>}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between py-2">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-gray-300" />
+              <span className="text-sm text-gray-700">LinkedIn</span>
             </div>
-          ))}
+            <span className="text-xs text-gray-500">Not connected — required for publishing and analytics</span>
+          </div>
+          <div className="flex items-center justify-between py-2">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-gray-300" />
+              <span className="text-sm text-gray-700">AI Provider</span>
+            </div>
+            <span className="text-xs text-gray-500">Not configured — required for content generation</span>
+          </div>
         </div>
         <p className="text-xs text-gray-500 mt-3">
-          Content pipeline is in <strong>Publish</strong> stage. Learning brain is analyzing last week's performance.
+          Integrations will be available in a future phase. For now, you can configure your profile, ICP, and content pillars.
         </p>
       </div>
     </div>

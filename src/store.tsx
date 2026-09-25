@@ -4,10 +4,10 @@ import {
   VoiceProfile, ICPProfile, ContentPillar, CarouselSlide,
   AudienceSegment, ContentOpportunity, PostDNA, LearnedPattern,
   Experiment, WeeklyLearningReport, BrainMetrics,
-  mockContentIdeas, mockDrafts, mockProspects, mockConversations,
-  mockVoiceProfile, mockICP, mockPillars, mockCarouselSlides,
-  mockAudienceSegments, mockContentOpportunities, mockPostDNA,
-  mockLearnedPatterns, mockExperiments, mockWeeklyReport, mockBrainMetrics
+  emptyContentIdeas, emptyDrafts, emptyProspects, emptyConversations,
+  defaultVoiceProfile, defaultICP, emptyPillars, emptyCarouselSlides,
+  emptyAudienceSegments, emptyContentOpportunities, emptyPostDNA,
+  emptyLearnedPatterns, emptyExperiments, defaultWeeklyReport, defaultBrainMetrics
 } from './data';
 
 interface AppState {
@@ -19,7 +19,6 @@ interface AppState {
   icp: ICPProfile;
   pillars: ContentPillar[];
   carouselSlides: CarouselSlide[];
-  // Brain System
   audienceSegments: AudienceSegment[];
   contentOpportunities: ContentOpportunity[];
   postDNA: PostDNA[];
@@ -59,32 +58,29 @@ type Action =
   | { type: 'UPDATE_VOICE'; profile: VoiceProfile }
   | { type: 'UPDATE_ICP'; icp: ICPProfile };
 
+// Clean workspace initial state — no demo data
 const initialState: AppState = {
-  ideas: mockContentIdeas,
-  drafts: mockDrafts,
-  prospects: mockProspects,
-  conversations: mockConversations,
-  voiceProfile: mockVoiceProfile,
-  icp: mockICP,
-  pillars: mockPillars,
-  carouselSlides: mockCarouselSlides,
-  // Brain System
-  audienceSegments: mockAudienceSegments,
-  contentOpportunities: mockContentOpportunities,
-  postDNA: mockPostDNA,
-  learnedPatterns: mockLearnedPatterns,
-  experiments: mockExperiments,
-  weeklyReport: mockWeeklyReport,
-  brainMetrics: mockBrainMetrics,
+  ideas: emptyContentIdeas,
+  drafts: emptyDrafts,
+  prospects: emptyProspects,
+  conversations: emptyConversations,
+  voiceProfile: defaultVoiceProfile,
+  icp: defaultICP,
+  pillars: emptyPillars,
+  carouselSlides: emptyCarouselSlides,
+  audienceSegments: emptyAudienceSegments,
+  contentOpportunities: emptyContentOpportunities,
+  postDNA: emptyPostDNA,
+  learnedPatterns: emptyLearnedPatterns,
+  experiments: emptyExperiments,
+  weeklyReport: defaultWeeklyReport,
+  brainMetrics: defaultBrainMetrics,
   currentPage: 'home',
   selectedIdea: null,
   selectedDraft: null,
   selectedProspect: null,
   selectedConversation: null,
-  notifications: [
-    { id: 'n1', type: 'info', message: '1 post ready for review', timestamp: new Date().toISOString() },
-    { id: 'n2', type: 'success', message: 'Sarah Chen requested a meeting', timestamp: new Date().toISOString() }
-  ]
+  notifications: []
 };
 
 function reducer(state: AppState, action: Action): AppState {

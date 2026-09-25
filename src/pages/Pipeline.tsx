@@ -136,22 +136,11 @@ export default function PipelinePage() {
           <Clock className="w-4 h-4 text-gray-500" />
           Recent Activity
         </h3>
-        <div className="space-y-3">
-          {[
-            { action: 'Sarah Chen moved to Responded', time: '2 hours ago', type: 'success' },
-            { action: 'Priya Patel qualified — score: 95', time: '5 hours ago', type: 'info' },
-            { action: 'Marcus Johnson contacted', time: '1 day ago', type: 'info' },
-            { action: 'James Wilson discovered', time: '2 days ago', type: 'info' },
-          ].map((activity, idx) => (
-            <div key={idx} className="flex items-center gap-3 py-2 border-b border-gray-50 last:border-0">
-              <div className={`w-2 h-2 rounded-full ${
-                activity.type === 'success' ? 'bg-success' : 'bg-primary'
-              }`} />
-              <p className="text-sm text-gray-700 flex-1">{activity.action}</p>
-              <span className="text-xs text-gray-400">{activity.time}</span>
-            </div>
-          ))}
-        </div>
+        {state.prospects.length === 0 ? (
+          <p className="text-sm text-gray-500 text-center py-4">No activity yet. Activity will appear as you manage prospects.</p>
+        ) : (
+          <p className="text-sm text-gray-500 text-center py-4">Activity tracking will be available in a future phase.</p>
+        )}
       </div>
     </div>
   );

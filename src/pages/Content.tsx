@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { ContentIdea } from '../data';
 
-import { mockContentOpportunities } from '../data';
+// Content opportunities come from state (currently empty until brain system is implemented)
 
 type ContentTab = 'ideas' | 'factory' | 'drafts' | 'carousel' | 'calendar';
 
@@ -166,6 +166,29 @@ export default function ContentPage() {
 function IdeasPanel() {
   const { state, dispatch } = useApp();
 
+  if (state.ideas.length === 0) {
+    return (
+      <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
+        <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <Lightbulb className="w-8 h-8 text-gray-400" />
+        </div>
+        <h3 className="text-lg font-semibold text-gray-800 mb-2">No content ideas yet</h3>
+        <p className="text-sm text-gray-500 max-w-md mx-auto mb-4">
+          Create your first idea from a thought, URL, note, or experience. The system will help you develop it into publishable content.
+        </p>
+        <button
+          onClick={() => {
+            const event = new CustomEvent('open-new-idea');
+            window.dispatchEvent(event);
+          }}
+          className="text-sm text-primary font-medium hover:text-primary-dark"
+        >
+          Create your first idea →
+        </button>
+      </div>
+    );
+  }
+
   const statusColors: Record<string, string> = {
     new: 'bg-gray-100 text-gray-600',
     researching: 'bg-blue-100 text-blue-700',
@@ -245,7 +268,19 @@ function DraftsPanel() {
   const [selectedDraftId, setSelectedDraftId] = useState<string | null>(state.drafts[0]?.id || null);
   const selectedDraft = state.drafts.find(d => d.id === selectedDraftId);
 
-  if (!selectedDraft) return <p className="text-gray-500 text-sm">No drafts yet.</p>;
+  if (!selectedDraft) {
+    return (
+      <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
+        <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <FileText className="w-8 h-8 text-gray-400" />
+        </div>
+        <h3 className="text-lg font-semibold text-gray-800 mb-2">No drafts yet</h3>
+        <p className="text-sm text-gray-500 max-w-md mx-auto">
+          Drafts appear here after you create a content idea and the system generates a draft. Start by adding an idea in the Ideas & Sources tab.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
@@ -515,23 +550,41 @@ function CarouselPanel() {
 function CalendarPanel() {
   const { state } = useApp();
 
-  const calendarItems = [
-    { date: 'Jan 16', title: 'AI tools vs workflows', format: 'Text Post', status: 'review', pillar: 'AI' },
-    { date: 'Jan 17', title: 'Context switching costs', format: 'Carousel', status: 'draft', pillar: 'Software Dev' },
-    { date: 'Jan 18', title: 'Why AI pilots fail', format: 'Text Post', status: 'strategizing', pillar: 'AI' },
-    { date: 'Jan 19', title: 'Building in public', format: 'Story', status: 'published', pillar: 'Startups' },
-    { date: 'Jan 20', title: 'Workflow automation stack', format: 'Framework', status: 'new', pillar: 'AI' },
-  ];
+  // Calendar items come from approved/scheduled drafts
+  const calendarItems = state.drafts
+    .filter(d => d.status === 'approved' || d.status === 'review')
+    .map(d => ({
+      date: new Date(d.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      title: d.title,
+      format: d.format,
+      status: d.status,
+      pillar: state.ideas.find(i => i.id === d.ideaId)?.pillar || '—'
+    }));
 
   const statusColors: Record<string, string> = {
     new: 'bg-gray-100 text-gray-600',
     draft: 'bg-blue-100 text-blue-700',
     strategizing: 'bg-amber-100 text-amber-700',
+    drafting: 'bg-indigo-100 text-indigo-700',
     review: 'bg-orange-100 text-orange-700',
     approved: 'bg-green-100 text-green-700',
     scheduled: 'bg-cyan-100 text-cyan-700',
     published: 'bg-emerald-100 text-emerald-700',
   };
+
+  if (calendarItems.length === 0) {
+    return (
+      <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
+        <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <TrendingUp className="w-8 h-8 text-gray-400" />
+        </div>
+        <h3 className="text-lg font-semibold text-gray-800 mb-2">No content scheduled</h3>
+        <p className="text-sm text-gray-500 max-w-md mx-auto">
+          Your content calendar will show approved and scheduled posts here. Create your first idea to get started.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white rounded-xl border border-gray-200">
@@ -553,7 +606,7 @@ function CalendarPanel() {
                 <span className="text-xs text-gray-500">{item.pillar}</span>
               </div>
             </div>
-            <span className={`text-xs px-2 py-1 rounded-full font-medium ${statusColors[item.status]}`}>
+            <span className={`text-xs px-2 py-1 rounded-full font-medium ${statusColors[item.status] || 'bg-gray-100 text-gray-600'}`}>
               {item.status}
             </span>
           </div>
@@ -613,8 +666,13 @@ function FactoryPanel() {
           Brain-Selected Opportunities
         </h3>
         <p className="text-xs text-gray-500 mb-3">
-          These topics were selected by the brain based on audience relevance, freshness, and historical performance patterns.
+          These topics will be selected by the brain based on audience relevance, freshness, and historical performance patterns once the system has real data.
         </p>
+        {state.contentOpportunities.length === 0 ? (
+          <div className="bg-gray-50 rounded-xl border border-gray-200 p-6 text-center">
+            <p className="text-sm text-gray-500">No opportunities discovered yet. The brain will surface relevant topics after configuration.</p>
+          </div>
+        ) : (
         <div className="space-y-3">
           {state.contentOpportunities.map((opp, idx) => (
             <div key={opp.id} className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-all animate-slide-in" style={{ animationDelay: `${idx * 100}ms` }}>
@@ -671,6 +729,7 @@ function FactoryPanel() {
             </div>
           ))}
         </div>
+        )}
       </div>
 
       {/* Explore/Exploit/Experiment */}

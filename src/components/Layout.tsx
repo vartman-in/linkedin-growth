@@ -66,15 +66,18 @@ export default function Layout({ children }: { children: ReactNode }) {
 
         {/* User */}
         <div className="p-4 border-t border-white/10">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center">
-              <span className="text-white text-xs font-bold">AK</span>
+          <button
+            onClick={() => dispatch({ type: 'SET_PAGE', page: 'settings' })}
+            className="w-full flex items-center gap-3 hover:bg-sidebar-hover rounded-lg p-1 -m-1 transition-colors"
+          >
+            <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center">
+              <Settings className="w-4 h-4 text-gray-300" />
             </div>
-            <div>
-              <p className="text-white text-sm font-medium">Ankit</p>
-              <p className="text-gray-400 text-xs">Growth Lead</p>
+            <div className="text-left">
+              <p className="text-white text-sm font-medium">Set up profile</p>
+              <p className="text-gray-400 text-xs">Configure workspace</p>
             </div>
-          </div>
+          </button>
         </div>
       </aside>
 
