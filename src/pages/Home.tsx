@@ -2,11 +2,11 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../workspace/WorkspaceContext';
-import { profileApi, icpApi, contentIdeasApi, contentDraftsApi, leadsApi, conversationsApi, pipelineApi } from '../api/client';
+import { profileApi, icpApi, contentIdeasApi, contentDraftsApi, leadsApi, conversationsApi, pipelineApi, intelligenceEngineApi } from '../api/client';
 import {
   FileText, Users, MessageSquare, ArrowRight,
   CheckCircle2, Lightbulb, Target, Settings,
-  Zap, User, Link2, Loader
+  Zap, User, Link2, Loader, Brain, TrendingUp, AlertTriangle
 } from 'lucide-react';
 
 export default function HomePage() {
@@ -22,6 +22,7 @@ export default function HomePage() {
   const [leads, setLeads] = useState<any[]>([]);
   const [conversations, setConversations] = useState<any[]>([]);
   const [opportunities, setOpportunities] = useState<any[]>([]);
+  const [intelligenceSummary, setIntelligenceSummary] = useState<any>(null);
 
   useEffect(() => {
     loadData();
@@ -34,14 +35,15 @@ export default function HomePage() {
       setLoading(true);
       
       // Load all data in parallel
-      const [profileData, icpsData, ideasData, draftsData, leadsData, conversationsData, opportunitiesData] = await Promise.allSettled([
+      const [profileData, icpsData, ideasData, draftsData, leadsData, conversationsData, opportunitiesData, intelligenceData] = await Promise.allSettled([
         profileApi.getMe(),
         icpApi.getAll(),
         contentIdeasApi.getAll(),
         contentDraftsApi.getAll(),
         leadsApi.getAll(),
         conversationsApi.getAll(),
-        pipelineApi.getAll()
+        pipelineApi.getAll(),
+        intelligenceEngineApi.getSummary()
       ]);
 
       setProfile(profileData.status === 'fulfilled' ? profileData.value : null);
@@ -51,6 +53,7 @@ export default function HomePage() {
       setLeads(leadsData.status === 'fulfilled' ? leadsData.value : []);
       setConversations(conversationsData.status === 'fulfilled' ? conversationsData.value : []);
       setOpportunities(opportunitiesData.status === 'fulfilled' ? opportunitiesData.value : []);
+      setIntelligenceSummary(intelligenceData.status === 'fulfilled' ? intelligenceData.value : null);
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
     } finally {
@@ -191,6 +194,61 @@ export default function HomePage() {
           )}
         </div>
       </div>
+
+      {/* Intelligence Summary */}
+      {intelligenceSummary && (
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Brain className="w-5 h-5 text-primary" />
+              <h3 className="text-lg font-semibold text-gray-800">Intelligence</h3>
+            </div>
+            <button
+              onClick={() => navigate('/brain')}
+              className="text-sm text-primary font-medium hover:text-primary-dark flex items-center gap-1"
+            >
+              View All <ArrowRight className="w-3 h-3" />
+            </button>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div className="bg-white rounded-xl border border-gray-200 p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Link2 className="w-4 h-4 text-blue-600" />
+                <span className="text-xs text-gray-600">Sources</span>
+              </div>
+              <p className="text-2xl font-bold text-gray-900">{intelligenceSummary.sources?.total || 0}</p>
+            </div>
+            <div className="bg-white rounded-xl border border-gray-200 p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Target className="w-4 h-4 text-purple-600" />
+                <span className="text-xs text-gray-600">Topics</span>
+              </div>
+              <p className="text-2xl font-bold text-gray-900">{intelligenceSummary.topics?.total || 0}</p>
+            </div>
+            <div className="bg-white rounded-xl border border-gray-200 p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <TrendingUp className="w-4 h-4 text-green-600" />
+                <span className="text-xs text-gray-600">Rising</span>
+              </div>
+              <p className="text-2xl font-bold text-gray-900">{intelligenceSummary.trends?.rising || 0}</p>
+            </div>
+            <div className="bg-white rounded-xl border border-gray-200 p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Lightbulb className="w-4 h-4 text-orange-600" />
+                <span className="text-xs text-gray-600">Opportunities</span>
+              </div>
+              <p className="text-2xl font-bold text-gray-900">{intelligenceSummary.opportunities?.total || 0}</p>
+            </div>
+            <div className="bg-white rounded-xl border border-gray-200 p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <AlertTriangle className="w-4 h-4 text-red-600" />
+                <span className="text-xs text-gray-600">Gaps</span>
+              </div>
+              <p className="text-2xl font-bold text-gray-900">{intelligenceSummary.gaps?.total || 0}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Setup Actions */}
       <div className="mb-8">

@@ -1,26 +1,32 @@
 import { useState, useEffect } from 'react';
 import { useWorkspace } from '../workspace/WorkspaceContext';
-import { intelligenceApi } from '../api/client';
+import { intelligenceEngineApi } from '../api/client';
 import {
-  Brain, Users, Search, Lightbulb, Palette, BarChart3,
-  GraduationCap, Briefcase, TrendingUp, Target, Zap,
-  CheckCircle2, AlertCircle, Clock, ArrowRight, Sparkles,
-  Eye, MessageSquare, Save, Share2, UserPlus, Activity, Loader, FileText
+  Brain, Link2, TrendingUp, Lightbulb, AlertTriangle, Target,
+  CheckCircle2, XCircle, Clock, ArrowRight, Sparkles,
+  Eye, Loader, Plus, ExternalLink, BarChart3, Zap
 } from 'lucide-react';
 
-type BrainTab = 'overview' | 'audience' | 'research' | 'learning' | 'experiments' | 'report';
+type BrainTab = 'overview' | 'opportunities' | 'trends' | 'gaps' | 'sources';
 
 export default function BrainPage() {
   const { activeWorkspace } = useWorkspace();
   const [activeTab, setActiveTab] = useState<BrainTab>('overview');
   
-  // Real data from API
-  const [contentInsights, setContentInsights] = useState<any>(null);
-  const [salesInsights, setSalesInsights] = useState<any>(null);
-  const [contentRecommendations, setContentRecommendations] = useState<any[]>([]);
-  const [leadRecommendations, setLeadRecommendations] = useState<any[]>([]);
+  // Intelligence data
+  const [summary, setSummary] = useState<any>(null);
+  const [opportunities, setOpportunities] = useState<any[]>([]);
+  const [trends, setTrends] = useState<any[]>([]);
+  const [gaps, setGaps] = useState<any[]>([]);
+  const [sources, setSources] = useState<any[]>([]);
+  
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedOpportunity, setSelectedOpportunity] = useState<any>(null);
+  const [selectedSource, setSelectedSource] = useState<any>(null);
+  const [showIngestModal, setShowIngestModal] = useState(false);
+  const [ingestUrl, setIngestUrl] = useState('');
+  const [ingesting, setIngesting] = useState(false);
 
   useEffect(() => {
     if (activeWorkspace) {
@@ -33,17 +39,19 @@ export default function BrainPage() {
       setLoading(true);
       setError(null);
       
-      const [contentInsightsData, salesInsightsData, contentRecsData, leadRecsData] = await Promise.allSettled([
-        intelligenceApi.getContentInsights(),
-        intelligenceApi.getSalesInsights(),
-        intelligenceApi.getContentRecommendations(),
-        intelligenceApi.getLeadRecommendations()
+      const [summaryData, opportunitiesData, trendsData, gapsData, sourcesData] = await Promise.allSettled([
+        intelligenceEngineApi.getSummary(),
+        intelligenceEngineApi.getOpportunities(),
+        intelligenceEngineApi.getTrends(),
+        intelligenceEngineApi.getGaps(),
+        intelligenceEngineApi.getSources()
       ]);
 
-      setContentInsights(contentInsightsData.status === 'fulfilled' ? contentInsightsData.value : null);
-      setSalesInsights(salesInsightsData.status === 'fulfilled' ? salesInsightsData.value : null);
-      setContentRecommendations(contentRecsData.status === 'fulfilled' ? contentRecsData.value : []);
-      setLeadRecommendations(leadRecsData.status === 'fulfilled' ? leadRecsData.value : []);
+      setSummary(summaryData.status === 'fulfilled' ? summaryData.value : null);
+      setOpportunities(opportunitiesData.status === 'fulfilled' ? opportunitiesData.value : []);
+      setTrends(trendsData.status === 'fulfilled' ? trendsData.value : []);
+      setGaps(gapsData.status === 'fulfilled' ? gapsData.value : []);
+      setSources(sourcesData.status === 'fulfilled' ? sourcesData.value : []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load intelligence data');
       console.error('Failed to load intelligence:', err);
@@ -52,13 +60,47 @@ export default function BrainPage() {
     }
   };
 
+  const handleIngestSource = async () => {
+    if (!ingestUrl.trim()) return;
+    
+    try {
+      setIngesting(true);
+      setError(null);
+      await intelligenceEngineApi.ingestSource(ingestUrl);
+      setIngestUrl('');
+      setShowIngestModal(false);
+      await loadIntelligence();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to ingest source');
+    } finally {
+      setIngesting(false);
+    }
+  };
+
+  const handleConvertOpportunity = async (opportunityId: string) => {
+    try {
+      await intelligenceEngineApi.convertOpportunityToIdea(opportunityId);
+      await loadIntelligence();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to convert opportunity');
+    }
+  };
+
+  const handleUpdateOpportunityStatus = async (opportunityId: string, status: string) => {
+    try {
+      await intelligenceEngineApi.updateOpportunityStatus(opportunityId, status);
+      await loadIntelligence();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update opportunity');
+    }
+  };
+
   const tabs = [
     { id: 'overview' as const, label: 'Overview', icon: Brain },
-    { id: 'audience' as const, label: 'Audience Insights', icon: Users },
-    { id: 'research' as const, label: 'Content Recommendations', icon: Search },
-    { id: 'learning' as const, label: 'Learning Patterns', icon: GraduationCap },
-    { id: 'experiments' as const, label: 'Lead Recommendations', icon: Activity },
-    { id: 'report' as const, label: 'Weekly Report', icon: BarChart3 },
+    { id: 'opportunities' as const, label: 'Opportunities', icon: Lightbulb },
+    { id: 'trends' as const, label: 'Trends', icon: TrendingUp },
+    { id: 'gaps' as const, label: 'Content Gaps', icon: AlertTriangle },
+    { id: 'sources' as const, label: 'Sources', icon: Link2 },
   ];
 
   if (loading) {
@@ -73,20 +115,63 @@ export default function BrainPage() {
     <div className="max-w-7xl mx-auto animate-fade-in">
       {/* Header */}
       <div className="mb-6">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center">
-            <Brain className="w-5 h-5 text-white" />
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center">
+              <Brain className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Growth Intelligence</h1>
+              <p className="text-gray-500 text-sm mt-0.5">AI-powered content intelligence and opportunity detection</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Content Intelligence OS</h1>
-            <p className="text-gray-500 text-sm mt-0.5">Self-improving content brain that learns what works</p>
-          </div>
+          <button
+            onClick={() => setShowIngestModal(true)}
+            className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Add Source
+          </button>
         </div>
       </div>
 
       {error && (
         <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
           <p className="text-sm text-red-800">{error}</p>
+        </div>
+      )}
+
+      {/* Ingest Modal */}
+      {showIngestModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl max-w-md w-full p-6">
+            <h3 className="text-lg font-semibold mb-4">Add Source URL</h3>
+            <input
+              type="url"
+              value={ingestUrl}
+              onChange={(e) => setIngestUrl(e.target.value)}
+              placeholder="https://example.com/article"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg mb-4"
+            />
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  setShowIngestModal(false);
+                  setIngestUrl('');
+                }}
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleIngestSource}
+                disabled={ingesting || !ingestUrl.trim()}
+                className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark disabled:opacity-50"
+              >
+                {ingesting ? 'Processing...' : 'Ingest'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -110,357 +195,503 @@ export default function BrainPage() {
 
       {/* Content */}
       {activeTab === 'overview' && (
-        <OverviewPanel 
-          contentInsights={contentInsights}
-          salesInsights={salesInsights}
+        <OverviewPanel summary={summary} />
+      )}
+      {activeTab === 'opportunities' && (
+        <OpportunitiesPanel
+          opportunities={opportunities}
+          onView={setSelectedOpportunity}
+          onConvert={handleConvertOpportunity}
+          onUpdateStatus={handleUpdateOpportunityStatus}
         />
       )}
-      {activeTab === 'audience' && <AudiencePanel contentInsights={contentInsights} />}
-      {activeTab === 'research' && <ResearchPanel recommendations={contentRecommendations} />}
-      {activeTab === 'learning' && <LearningPanel contentInsights={contentInsights} />}
-      {activeTab === 'experiments' && <ExperimentsPanel recommendations={leadRecommendations} />}
-      {activeTab === 'report' && <ReportPanel contentInsights={contentInsights} salesInsights={salesInsights} />}
-    </div>
-  );
-}
-
-function OverviewPanel({ contentInsights, salesInsights }: any) {
-  const hasData = contentInsights || salesInsights;
-
-  if (!hasData) {
-    return (
-      <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
-        <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-          <Brain className="w-8 h-8 text-gray-400" />
-        </div>
-        <h3 className="text-lg font-semibold text-gray-800 mb-2">No learning data yet</h3>
-        <p className="text-sm text-gray-500 max-w-md mx-auto mb-6">
-          The Content Intelligence OS will begin tracking patterns once you publish content and collect performance data.
-        </p>
-        <div className="bg-gray-50 rounded-lg p-4 text-left max-w-sm mx-auto">
-          <p className="text-xs font-medium text-gray-700 mb-2">The system will track:</p>
-          <ul className="text-xs text-gray-600 space-y-1">
-            <li>• Which content performs best</li>
-            <li>• Audience engagement patterns</li>
-            <li>• Topic effectiveness</li>
-            <li>• Posting time optimization</li>
-            <li>• Format preferences</li>
-          </ul>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-6">
-      {/* Content Insights Summary */}
-      {contentInsights && (
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <h3 className="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2">
-            <FileText className="w-4 h-4 text-primary" />
-            Content Intelligence
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-primary-light/50 rounded-lg p-4">
-              <p className="text-xs text-gray-600 mb-1">Hot Topics</p>
-              <p className="text-2xl font-bold text-primary">{contentInsights.hotTopics?.length || 0}</p>
-            </div>
-            <div className="bg-accent-light/50 rounded-lg p-4">
-              <p className="text-xs text-gray-600 mb-1">Recurring Objections</p>
-              <p className="text-2xl font-bold text-accent">{contentInsights.recurringObjections?.length || 0}</p>
-            </div>
-            <div className="bg-success-light/50 rounded-lg p-4">
-              <p className="text-xs text-gray-600 mb-1">Recurring Questions</p>
-              <p className="text-2xl font-bold text-success">{contentInsights.recurringQuestions?.length || 0}</p>
-            </div>
-          </div>
-        </div>
+      {activeTab === 'trends' && (
+        <TrendsPanel trends={trends} />
+      )}
+      {activeTab === 'gaps' && (
+        <GapsPanel gaps={gaps} />
+      )}
+      {activeTab === 'sources' && (
+        <SourcesPanel sources={sources} onView={setSelectedSource} />
       )}
 
-      {/* Sales Insights Summary */}
-      {salesInsights && (
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <h3 className="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2">
-            <Users className="w-4 h-4 text-accent" />
-            Sales Intelligence
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-primary-light/50 rounded-lg p-4">
-              <p className="text-xs text-gray-600 mb-1">Top Performing Content</p>
-              <p className="text-2xl font-bold text-primary">{salesInsights.topPerformingContent?.length || 0}</p>
-            </div>
-            <div className="bg-accent-light/50 rounded-lg p-4">
-              <p className="text-xs text-gray-600 mb-1">Content-to-Lead Mapping</p>
-              <p className="text-2xl font-bold text-accent">{salesInsights.contentToLeadMapping?.length || 0}</p>
-            </div>
-          </div>
-        </div>
+      {/* Opportunity Detail Modal */}
+      {selectedOpportunity && (
+        <OpportunityDetailModal
+          opportunity={selectedOpportunity}
+          onClose={() => setSelectedOpportunity(null)}
+          onConvert={handleConvertOpportunity}
+          onUpdateStatus={handleUpdateOpportunityStatus}
+        />
+      )}
+
+      {/* Source Detail Modal */}
+      {selectedSource && (
+        <SourceDetailModal
+          source={selectedSource}
+          onClose={() => setSelectedSource(null)}
+        />
       )}
     </div>
   );
 }
 
-function AudiencePanel({ contentInsights }: any) {
-  if (!contentInsights?.hotTopics || contentInsights.hotTopics.length === 0) {
+function OverviewPanel({ summary }: { summary: any }) {
+  if (!summary) {
     return (
-      <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
-        <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-          <Users className="w-8 h-8 text-gray-400" />
-        </div>
-        <h3 className="text-lg font-semibold text-gray-800 mb-2">No audience insights yet</h3>
-        <p className="text-sm text-gray-500 max-w-md mx-auto">
-          Audience insights will appear after analyzing conversations and content engagement.
-        </p>
+      <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
+        <Brain className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+        <h3 className="text-lg font-semibold text-gray-800 mb-2">No intelligence data yet</h3>
+        <p className="text-sm text-gray-500">Add sources to start building intelligence.</p>
       </div>
     );
   }
 
-  return (
-    <div className="space-y-4">
-      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
-        <div className="flex items-start gap-2">
-          <Users className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
-          <div>
-            <p className="text-sm font-semibold text-gray-800">Audience Brain</p>
-            <p className="text-xs text-gray-600 mt-1">
-              Hot topics identified from conversations and content engagement.
-            </p>
-          </div>
-        </div>
-      </div>
+  const stats = [
+    { label: 'Sources', value: summary.sources?.total || 0, icon: Link2, color: 'text-blue-600' },
+    { label: 'Topics', value: summary.topics?.total || 0, icon: Target, color: 'text-purple-600' },
+    { label: 'Trends', value: summary.trends?.rising || 0, icon: TrendingUp, color: 'text-green-600' },
+    { label: 'Opportunities', value: summary.opportunities?.total || 0, icon: Lightbulb, color: 'text-orange-600' },
+    { label: 'Gaps', value: summary.gaps?.total || 0, icon: AlertTriangle, color: 'text-red-600' },
+  ];
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {contentInsights.hotTopics.map((topic: any, idx: number) => (
-          <div key={idx} className="bg-white rounded-xl border border-gray-200 p-4">
-            <h4 className="text-sm font-bold text-gray-800 mb-2">{topic.topic}</h4>
-            <div className="flex items-center gap-3 mb-2">
-              <span className="text-xs text-gray-500">{topic.count} mentions</span>
-              <span className="text-xs text-gray-500">{topic.leads?.length || 0} leads</span>
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+      {stats.map((stat, idx) => {
+        const Icon = stat.icon;
+        return (
+          <div key={idx} className="bg-white rounded-xl border border-gray-200 p-5">
+            <div className="flex items-center justify-between mb-2">
+              <Icon className={`w-6 h-6 ${stat.color}`} />
+              <span className="text-3xl font-bold text-gray-900">{stat.value}</span>
             </div>
+            <p className="text-sm text-gray-600">{stat.label}</p>
           </div>
-        ))}
-      </div>
+        );
+      })}
     </div>
   );
 }
 
-function ResearchPanel({ recommendations }: any) {
-  if (!recommendations || recommendations.length === 0) {
+function OpportunitiesPanel({
+  opportunities,
+  onView,
+  onConvert,
+  onUpdateStatus
+}: {
+  opportunities: any[];
+  onView: (opp: any) => void;
+  onConvert: (id: string) => void;
+  onUpdateStatus: (id: string, status: string) => void;
+}) {
+  if (opportunities.length === 0) {
     return (
-      <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
-        <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-          <Search className="w-8 h-8 text-gray-400" />
-        </div>
-        <h3 className="text-lg font-semibold text-gray-800 mb-2">No content recommendations yet</h3>
-        <p className="text-sm text-gray-500 max-w-md mx-auto">
-          Content recommendations will be generated based on sales intelligence and audience insights.
-        </p>
+      <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
+        <Lightbulb className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+        <h3 className="text-lg font-semibold text-gray-800 mb-2">No content opportunities yet</h3>
+        <p className="text-sm text-gray-500">Add sources and detect trends to generate opportunities.</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-4">
-      <div className="bg-purple-50 border border-purple-200 rounded-xl p-4 mb-4">
-        <div className="flex items-start gap-2">
-          <Search className="w-5 h-5 text-purple-600 shrink-0 mt-0.5" />
-          <div>
-            <p className="text-sm font-semibold text-gray-800">Content Recommendations</p>
-            <p className="text-xs text-gray-600 mt-1">
-              AI-generated content ideas based on sales intelligence and audience insights.
-            </p>
+      {opportunities.map(opp => (
+        <div key={opp.id} className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="flex items-start justify-between mb-3">
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-gray-900 mb-1">{opp.topic_name}</h3>
+              <p className="text-sm text-gray-600 mb-2">{opp.thesis}</p>
+              <div className="flex items-center gap-4 text-xs text-gray-500">
+                <span className="flex items-center gap-1">
+                  <BarChart3 className="w-3 h-3" />
+                  Score: {opp.overall_score?.toFixed(1) || 'N/A'}
+                </span>
+                <span className="flex items-center gap-1">
+                  <Link2 className="w-3 h-3" />
+                  {opp.source_ids?.length || 0} sources
+                </span>
+                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                  opp.status === 'DISCOVERED' ? 'bg-blue-100 text-blue-700' :
+                  opp.status === 'REVIEWED' ? 'bg-purple-100 text-purple-700' :
+                  opp.status === 'SAVED' ? 'bg-green-100 text-green-700' :
+                  opp.status === 'CONVERTED' ? 'bg-gray-100 text-gray-700' :
+                  'bg-gray-100 text-gray-600'
+                }`}>
+                  {opp.status}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex gap-2">
+            <button
+              onClick={() => onView(opp)}
+              className="flex items-center gap-1 px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
+            >
+              <Eye className="w-4 h-4" />
+              View Details
+            </button>
+            {opp.status !== 'CONVERTED' && (
+              <button
+                onClick={() => onConvert(opp.id)}
+                className="flex items-center gap-1 px-3 py-1.5 text-sm bg-primary text-white rounded-lg hover:bg-primary-dark"
+              >
+                <Sparkles className="w-4 h-4" />
+                Create Content Idea
+              </button>
+            )}
+            {opp.status === 'DISCOVERED' && (
+              <button
+                onClick={() => onUpdateStatus(opp.id, 'REVIEWED')}
+                className="flex items-center gap-1 px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                Mark Reviewed
+              </button>
+            )}
           </div>
         </div>
-      </div>
-
-      <div className="space-y-3">
-        {recommendations.map((rec: any, idx: number) => (
-          <div key={idx} className="bg-white rounded-xl border border-gray-200 p-4">
-            <div className="flex items-start justify-between mb-2">
-              <h4 className="text-sm font-bold text-gray-800">{rec.topic}</h4>
-              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                rec.priority === 'high' ? 'bg-red-100 text-red-700' :
-                rec.priority === 'medium' ? 'bg-orange-100 text-orange-700' :
-                'bg-gray-100 text-gray-600'
-              }`}>
-                {rec.priority}
-              </span>
-            </div>
-            <p className="text-xs text-gray-600 mb-2">{rec.reason}</p>
-            <span className="text-xs text-gray-500">Source: {rec.source}</span>
-          </div>
-        ))}
-      </div>
+      ))}
     </div>
   );
 }
 
-function LearningPanel({ contentInsights }: any) {
-  if (!contentInsights?.recurringObjections || contentInsights.recurringObjections.length === 0) {
+function TrendsPanel({ trends }: { trends: any[] }) {
+  if (trends.length === 0) {
     return (
-      <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
-        <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-          <GraduationCap className="w-8 h-8 text-gray-400" />
-        </div>
-        <h3 className="text-lg font-semibold text-gray-800 mb-2">No learning signals yet</h3>
-        <p className="text-sm text-gray-500 max-w-md mx-auto">
-          Learning will appear after the system has real content, sales or user-feedback data.
-        </p>
+      <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
+        <TrendingUp className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+        <h3 className="text-lg font-semibold text-gray-800 mb-2">No trend signals yet</h3>
+        <p className="text-sm text-gray-500">More data is needed to detect trends.</p>
       </div>
     );
   }
 
+  const statusColors: Record<string, string> = {
+    NEW: 'bg-blue-100 text-blue-700',
+    RISING: 'bg-green-100 text-green-700',
+    SUSTAINED: 'bg-purple-100 text-purple-700',
+    STABLE: 'bg-gray-100 text-gray-700',
+    DECLINING: 'bg-red-100 text-red-700',
+    INSUFFICIENT_DATA: 'bg-yellow-100 text-yellow-700',
+  };
+
   return (
     <div className="space-y-4">
-      <div className="bg-teal-50 border border-teal-200 rounded-xl p-4 mb-4">
-        <div className="flex items-start gap-2">
-          <GraduationCap className="w-5 h-5 text-teal-600 shrink-0 mt-0.5" />
-          <div>
-            <p className="text-sm font-semibold text-gray-800">Learning Brain</p>
-            <p className="text-xs text-gray-600 mt-1">
-              Recurring objections and questions identified from conversations.
-            </p>
+      {trends.map(trend => (
+        <div key={trend.id} className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="flex items-start justify-between mb-3">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                Topic {trend.topic_id?.substring(0, 8)}
+              </h3>
+              <p className="text-sm text-gray-600">{trend.signal_type}</p>
+            </div>
+            <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusColors[trend.status] || 'bg-gray-100 text-gray-600'}`}>
+              {trend.status}
+            </span>
           </div>
-        </div>
-      </div>
 
-      <div className="space-y-3">
-        {contentInsights.recurringObjections.map((objection: any, idx: number) => (
-          <div key={idx} className="bg-white rounded-xl border border-gray-200 p-4">
-            <h4 className="text-sm font-bold text-gray-800 mb-2">{objection.topic}</h4>
-            <p className="text-xs text-gray-600 mb-2">{objection.count} occurrences</p>
-            {objection.examples && objection.examples.length > 0 && (
-              <div className="mt-2">
-                <p className="text-xs text-gray-500 mb-1">Examples:</p>
-                <ul className="text-xs text-gray-600 space-y-1">
-                  {objection.examples.slice(0, 3).map((example: string, i: number) => (
-                    <li key={i} className="italic">"{example}"</li>
-                  ))}
-                </ul>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+            {trend.volume !== null && (
+              <div>
+                <p className="text-gray-500 text-xs">Volume</p>
+                <p className="font-semibold">{trend.volume}</p>
+              </div>
+            )}
+            {trend.velocity !== null && (
+              <div>
+                <p className="text-gray-500 text-xs">Velocity</p>
+                <p className="font-semibold">{trend.velocity.toFixed(2)}</p>
+              </div>
+            )}
+            {trend.source_diversity !== null && (
+              <div>
+                <p className="text-gray-500 text-xs">Source Diversity</p>
+                <p className="font-semibold">{trend.source_diversity}</p>
+              </div>
+            )}
+            {trend.confidence !== null && (
+              <div>
+                <p className="text-gray-500 text-xs">Confidence</p>
+                <p className="font-semibold">{(trend.confidence * 100).toFixed(0)}%</p>
               </div>
             )}
           </div>
-        ))}
-      </div>
+        </div>
+      ))}
     </div>
   );
 }
 
-function ExperimentsPanel({ recommendations }: any) {
-  if (!recommendations || recommendations.length === 0) {
+function GapsPanel({ gaps }: { gaps: any[] }) {
+  if (gaps.length === 0) {
     return (
-      <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
-        <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-          <Activity className="w-8 h-8 text-gray-400" />
-        </div>
-        <h3 className="text-lg font-semibold text-gray-800 mb-2">No lead recommendations yet</h3>
-        <p className="text-sm text-gray-500 max-w-md mx-auto">
-          Lead recommendations will be generated based on content engagement and audience insights.
-        </p>
+      <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
+        <AlertTriangle className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+        <h3 className="text-lg font-semibold text-gray-800 mb-2">No content gaps detected</h3>
+        <p className="text-sm text-gray-500">Add more sources to identify gaps.</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-4">
-      <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-4 mb-4">
-        <div className="flex items-start gap-2">
-          <Activity className="w-5 h-5 text-indigo-600 shrink-0 mt-0.5" />
-          <div>
-            <p className="text-sm font-semibold text-gray-800">Lead Recommendations</p>
-            <p className="text-xs text-gray-600 mt-1">
-              AI-generated lead recommendations based on content engagement.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div className="space-y-3">
-        {recommendations.map((rec: any, idx: number) => (
-          <div key={idx} className="bg-white rounded-xl border border-gray-200 p-4">
-            <div className="flex items-start justify-between mb-2">
-              <h4 className="text-sm font-bold text-gray-800">{rec.leadName}</h4>
-              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                rec.priority === 'high' ? 'bg-red-100 text-red-700' :
-                rec.priority === 'medium' ? 'bg-orange-100 text-orange-700' :
-                'bg-gray-100 text-gray-600'
-              }`}>
-                {rec.priority}
+      {gaps.map(gap => (
+        <div key={gap.id} className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="flex items-start justify-between mb-3">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-1">{gap.topic_name}</h3>
+              <span className="px-2 py-0.5 bg-red-100 text-red-700 rounded-full text-xs font-medium">
+                {gap.gap_type?.replace('_', ' ')}
               </span>
             </div>
-            <p className="text-xs text-gray-600 mb-2">{rec.reason}</p>
-            <p className="text-xs text-gray-500">Suggested action: {rec.suggestedAction}</p>
+            {gap.confidence !== null && (
+              <span className="text-sm text-gray-500">
+                Confidence: {(gap.confidence * 100).toFixed(0)}%
+              </span>
+            )}
           </div>
-        ))}
+
+          {gap.unanswered_question && (
+            <div className="mb-3">
+              <p className="text-sm text-gray-600">{gap.unanswered_question}</p>
+            </div>
+          )}
+
+          {gap.opportunity_description && (
+            <div className="bg-blue-50 rounded-lg p-3">
+              <p className="text-sm text-blue-900">{gap.opportunity_description}</p>
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function SourcesPanel({ sources, onView }: { sources: any[]; onView: (source: any) => void }) {
+  if (sources.length === 0) {
+    return (
+      <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
+        <Link2 className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+        <h3 className="text-lg font-semibold text-gray-800 mb-2">No sources yet</h3>
+        <p className="text-sm text-gray-500 mb-4">Add your first source to start building intelligence.</p>
+      </div>
+    );
+  }
+
+  const statusColors: Record<string, string> = {
+    DISCOVERED: 'bg-blue-100 text-blue-700',
+    FETCHED: 'bg-yellow-100 text-yellow-700',
+    PROCESSED: 'bg-green-100 text-green-700',
+    FAILED: 'bg-red-100 text-red-700',
+  };
+
+  return (
+    <div className="space-y-3">
+      {sources.map(source => (
+        <div key={source.id} className="bg-white rounded-xl border border-gray-200 p-4 flex items-center justify-between">
+          <div className="flex-1 min-w-0">
+            <h3 className="text-sm font-semibold text-gray-900 truncate mb-1">
+              {source.title || source.url}
+            </h3>
+            <p className="text-xs text-gray-500 truncate">{source.url}</p>
+            <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
+              <span className={`px-2 py-0.5 rounded-full font-medium ${statusColors[source.status] || 'bg-gray-100 text-gray-600'}`}>
+                {source.status}
+              </span>
+              {source.publisher && <span>{source.publisher}</span>}
+              {source.fetched_at && (
+                <span className="flex items-center gap-1">
+                  <Clock className="w-3 h-3" />
+                  {new Date(source.fetched_at).toLocaleDateString()}
+                </span>
+              )}
+            </div>
+          </div>
+          <button
+            onClick={() => onView(source)}
+            className="ml-4 flex items-center gap-1 px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
+          >
+            <Eye className="w-4 h-4" />
+            View
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function OpportunityDetailModal({
+  opportunity,
+  onClose,
+  onConvert,
+  onUpdateStatus
+}: {
+  opportunity: any;
+  onClose: () => void;
+  onConvert: (id: string) => void;
+  onUpdateStatus: (id: string, status: string) => void;
+}) {
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-6">
+        <div className="flex items-start justify-between mb-4">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">{opportunity.topic_name}</h2>
+            <p className="text-sm text-gray-600">{opportunity.thesis}</p>
+          </div>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <XCircle className="w-6 h-6" />
+          </button>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-sm font-semibold text-gray-900 mb-2">Why Now</h3>
+            <p className="text-sm text-gray-600">{opportunity.why_now || 'No timing information available'}</p>
+          </div>
+
+          <div>
+            <h3 className="text-sm font-semibold text-gray-900 mb-2">Audience Relevance</h3>
+            <p className="text-sm text-gray-600">{opportunity.audience_relevance || 'Not specified'}</p>
+          </div>
+
+          <div>
+            <h3 className="text-sm font-semibold text-gray-900 mb-2">Recommended Approach</h3>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="bg-gray-50 rounded-lg p-3">
+                <p className="text-xs text-gray-500 mb-1">Angle</p>
+                <p className="text-sm font-medium">{opportunity.recommended_angle || 'N/A'}</p>
+              </div>
+              <div className="bg-gray-50 rounded-lg p-3">
+                <p className="text-xs text-gray-500 mb-1">Format</p>
+                <p className="text-sm font-medium">{opportunity.recommended_format || 'N/A'}</p>
+              </div>
+              <div className="bg-gray-50 rounded-lg p-3">
+                <p className="text-xs text-gray-500 mb-1">Objective</p>
+                <p className="text-sm font-medium">{opportunity.recommended_objective || 'N/A'}</p>
+              </div>
+            </div>
+          </div>
+
+          {opportunity.scoring_breakdown && (
+            <div>
+              <h3 className="text-sm font-semibold text-gray-900 mb-2">Scoring Breakdown</h3>
+              <div className="space-y-2">
+                {Object.entries(opportunity.scoring_breakdown).map(([key, value]: [string, any]) => (
+                  <div key={key} className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
+                    <div>
+                      <p className="text-sm font-medium capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</p>
+                      <p className="text-xs text-gray-500">{value.reason}</p>
+                    </div>
+                    <span className="text-lg font-bold text-gray-900">{value.score}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="flex gap-2 pt-4 border-t">
+            {opportunity.status !== 'CONVERTED' && (
+              <button
+                onClick={() => onConvert(opportunity.id)}
+                className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark"
+              >
+                <Sparkles className="w-4 h-4" />
+                Create Content Idea
+              </button>
+            )}
+            {opportunity.status === 'DISCOVERED' && (
+              <button
+                onClick={() => onUpdateStatus(opportunity.id, 'REVIEWED')}
+                className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                Mark Reviewed
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+            >
+              Close
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
 }
 
-function ReportPanel({ contentInsights, salesInsights }: any) {
-  if (!contentInsights && !salesInsights) {
-    return (
-      <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
-        <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-          <BarChart3 className="w-8 h-8 text-gray-400" />
-        </div>
-        <h3 className="text-lg font-semibold text-gray-800 mb-2">No weekly report yet</h3>
-        <p className="text-sm text-gray-500 max-w-md mx-auto">
-          Weekly intelligence reports will be generated after you've published content and collected performance data.
-        </p>
-      </div>
-    );
-  }
-
+function SourceDetailModal({ source, onClose }: { source: any; onClose: () => void }) {
   return (
-    <div className="space-y-5">
-      <div className="bg-gradient-to-br from-primary/5 to-accent/5 rounded-2xl border border-primary/10 p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-12 h-12 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center">
-            <Brain className="w-6 h-6 text-white" />
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-6">
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex-1">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">{source.title || 'Untitled Source'}</h2>
+            <div className="flex items-center gap-3 text-sm text-gray-500">
+              {source.publisher && <span>{source.publisher}</span>}
+              {source.published_at && (
+                <span>{new Date(source.published_at).toLocaleDateString()}</span>
+              )}
+            </div>
           </div>
-          <div>
-            <h3 className="text-lg font-bold text-gray-900">Weekly Content Intelligence</h3>
-            <p className="text-sm text-gray-500">Current Period</p>
-          </div>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <XCircle className="w-6 h-6" />
+          </button>
         </div>
 
-        <div className="grid grid-cols-3 gap-4 mb-6">
-          <div className="bg-white rounded-xl p-4 text-center">
-            <div className="text-2xl font-bold text-gray-900">{contentInsights?.hotTopics?.length || 0}</div>
-            <div className="text-xs text-gray-500">Hot Topics</div>
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-sm font-semibold text-gray-900 mb-2">URL</h3>
+            <a
+              href={source.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm text-primary hover:underline flex items-center gap-1"
+            >
+              {source.url}
+              <ExternalLink className="w-3 h-3" />
+            </a>
           </div>
-          <div className="bg-white rounded-xl p-4 text-center">
-            <div className="text-2xl font-bold text-primary">{contentInsights?.recurringObjections?.length || 0}</div>
-            <div className="text-xs text-gray-500">Objections</div>
+
+          <div>
+            <h3 className="text-sm font-semibold text-gray-900 mb-2">Status</h3>
+            <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+              source.status === 'PROCESSED' ? 'bg-green-100 text-green-700' :
+              source.status === 'FETCHED' ? 'bg-yellow-100 text-yellow-700' :
+              source.status === 'FAILED' ? 'bg-red-100 text-red-700' :
+              'bg-blue-100 text-blue-700'
+            }`}>
+              {source.status}
+            </span>
           </div>
-          <div className="bg-white rounded-xl p-4 text-center">
-            <div className="text-2xl font-bold text-accent">{contentInsights?.recurringQuestions?.length || 0}</div>
-            <div className="text-xs text-gray-500">Questions</div>
+
+          {source.error_message && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+              <p className="text-sm text-red-800">{source.error_message}</p>
+            </div>
+          )}
+
+          <div>
+            <h3 className="text-sm font-semibold text-gray-900 mb-2">Metadata</h3>
+            <div className="bg-gray-50 rounded-lg p-3 text-sm">
+              <pre className="whitespace-pre-wrap">{JSON.stringify(source.metadata || {}, null, 2)}</pre>
+            </div>
           </div>
+
+          <button
+            onClick={onClose}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+          >
+            Close
+          </button>
         </div>
       </div>
-
-      {/* Strong Signals */}
-      {contentInsights?.hotTopics && contentInsights.hotTopics.length > 0 && (
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <h4 className="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-success" />
-            Strong Signals
-          </h4>
-          <div className="space-y-3">
-            {contentInsights.hotTopics.slice(0, 3).map((topic: any, idx: number) => (
-              <div key={idx} className="p-3 bg-success-light/50 border border-success/20 rounded-lg">
-                <p className="text-sm text-gray-700">{topic.topic}</p>
-                <div className="flex items-center gap-3 mt-2">
-                  <span className="text-xs font-medium text-success">{topic.count} mentions</span>
-                  <span className="text-xs text-gray-500">{topic.leads?.length || 0} leads</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
