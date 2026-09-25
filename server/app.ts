@@ -3,6 +3,8 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 import { errorHandler, notFoundHandler } from './middleware/error.middleware';
 import healthRoutes from './routes/health.routes';
@@ -12,8 +14,11 @@ import icpRoutes from './routes/icp.routes';
 import contentRoutes from './routes/content.routes';
 import leadRoutes from './routes/lead.routes';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 // Load environment variables
-dotenv.config();
+dotenv.config({ path: path.resolve(__dirname, '.env') });
 
 const app = express();
 
