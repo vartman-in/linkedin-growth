@@ -4,7 +4,7 @@
  */
 
 import { Pool } from 'pg';
-import { getAIProvider } from '../ai/provider';
+import { getAIProvider } from '../../ai/provider';
 import { IntelligenceRepository } from '../../repositories/intelligence.repository';
 import { SourceDocument, SourceClaim, Topic, TopicMention } from '../../models/types';
 

@@ -61,7 +61,7 @@ export async function up(migrations: MigrationBuilder): Promise<void> {
 
   // ICP table (workspace-scoped)
   await migrations.createTable('icps', {
-    id: { type: 'uuid', primaryKey: true, default: migrations.pgFunc('gen_random_uuid') },
+    id: { type: 'uuid', primaryKey: true, default: migrations.func('gen_random_uuid') },
     workspace_id: { type: 'uuid', notNull: true, references: '"workspaces"', onDelete: 'CASCADE' },
     name: { type: 'varchar(255)', notNull: true },
     target_roles: { type: 'text[]', default: "'{}'" },

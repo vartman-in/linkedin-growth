@@ -6,8 +6,8 @@
 import { Pool } from 'pg';
 import * as cheerio from 'cheerio';
 import crypto from 'crypto';
-import { IntelligenceRepository } from '../repositories/intelligence.repository';
-import { SourceDocument, IntelligenceSource } from '../models/types';
+import { IntelligenceRepository } from '../../repositories/intelligence.repository';
+import { SourceDocument, IntelligenceSource } from '../../models/types';
 
 export class SourceNormalizationService {
   private intelligenceRepo: IntelligenceRepository;

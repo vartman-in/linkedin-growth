@@ -4,7 +4,7 @@
  */
 
 import { Pool } from 'pg';
-import { getAIProvider } from '../ai/provider';
+import { getAIProvider } from '../../ai/provider';
 import { IntelligenceRepository } from '../../repositories/intelligence.repository';
 import { ClosedLoopRepository } from '../../repositories/closed-loop.repository';
 import { Topic, TrendSignal, ContentOpportunity, SourceClaim, IntelligenceSource } from '../../models/types';

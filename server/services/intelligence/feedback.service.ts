@@ -4,8 +4,8 @@
  */
 
 import { Pool } from 'pg';
-import { ClosedLoopRepository } from '../repositories/closed-loop.repository';
-import { FeedbackEntityType, FeedbackType } from '../models/types';
+import { ClosedLoopRepository } from '../../repositories/closed-loop.repository';
+import { FeedbackEntityType, FeedbackType } from '../../models/types';
 
 export class IntelligenceFeedbackService {
   private closedLoopRepo: ClosedLoopRepository;

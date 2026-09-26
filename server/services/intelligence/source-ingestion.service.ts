@@ -8,8 +8,8 @@ import axios from 'axios';
 import * as cheerio from 'cheerio';
 import Parser from 'rss-parser';
 import crypto from 'crypto';
-import { IntelligenceRepository } from '../repositories/intelligence.repository';
-import { IntelligenceSource } from '../models/types';
+import { IntelligenceRepository } from '../../repositories/intelligence.repository';
+import { IntelligenceSource } from '../../models/types';
 
 // Security constants
 const MAX_URL_LENGTH = 2048;

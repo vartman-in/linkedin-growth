@@ -4,9 +4,9 @@
  */
 
 import { Pool } from 'pg';
-import { getAIProvider } from './ai/provider';
-import { ClosedLoopRepository } from '../repositories/closed-loop.repository';
-import { LearningPattern, LearningInsight, PatternType, InsightType } from '../models/types';
+import { getAIProvider } from '../ai/provider';
+import { ClosedLoopRepository } from '../../repositories/closed-loop.repository';
+import { LearningPattern, LearningInsight, PatternType, InsightType } from '../../models/types';
 
 export interface LearningConfig {
   minObservationsForPattern: number; // Minimum observations to detect a pattern
