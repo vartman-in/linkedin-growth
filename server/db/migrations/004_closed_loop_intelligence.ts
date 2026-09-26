@@ -5,7 +5,7 @@ export const shorthands: ColumnDefinitions | undefined = undefined;
 export async function up(migrations: MigrationBuilder): Promise<void> {
   // Intelligence Feedback table - tracks all user interactions with intelligence
   await migrations.createTable('intelligence_feedback', {
-    id: { type: 'uuid', primaryKey: true, default: migrations.pgFunc('gen_random_uuid') },
+    id: { type: 'uuid', primaryKey: true, default: migrations.func('gen_random_uuid') },
     workspace_id: { type: 'uuid', notNull: true, references: '"workspaces"', onDelete: 'CASCADE' },
     user_id: { type: 'uuid', references: '"users"', onDelete: 'SET NULL' },
     entity_type: { type: 'varchar(50)', notNull: true }, // opportunity, idea, draft, content, topic
@@ -13,7 +13,7 @@ export async function up(migrations: MigrationBuilder): Promise<void> {
     feedback_type: { type: 'varchar(50)', notNull: true }, // accepted, dismissed, edited, converted, published, rejected
     feedback_data: { type: 'jsonb', default: "'{}'" }, // additional context about the feedback
     provenance: { type: 'varchar(50)', notNull: true, default: "'USER_ACTION'" }, // USER_ACTION, SYSTEM_DETECTED, IMPORTED
-    created_at: { type: 'timestamp', default: migrations.pgFunc('now()'), notNull: true },
+    created_at: { type: 'timestamp', default: migrations.func('now()'), notNull: true },
   });
 
   await migrations.createIndex('intelligence_feedback', ['workspace_id']);

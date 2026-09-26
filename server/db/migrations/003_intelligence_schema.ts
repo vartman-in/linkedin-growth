@@ -5,14 +5,14 @@ export const shorthands: ColumnDefinitions | undefined = undefined;
 export async function up(migrations: MigrationBuilder): Promise<void> {
   // Intelligence Sources table
   await migrations.createTable('intelligence_sources', {
-    id: { type: 'uuid', primaryKey: true, default: migrations.pgFunc('gen_random_uuid') },
+    id: { type: 'uuid', primaryKey: true, default: migrations.func('gen_random_uuid') },
     workspace_id: { type: 'uuid', notNull: true, references: '"workspaces"', onDelete: 'CASCADE' },
     url: { type: 'text', notNull: true },
     source_type: { type: 'varchar(50)', notNull: true }, // web, rss, atom, sitemap
     title: { type: 'text' },
     publisher: { type: 'varchar(255)' },
     domain: { type: 'varchar(255)' },
-    discovered_at: { type: 'timestamp', default: migrations.pgFunc('now()'), notNull: true },
+    discovered_at: { type: 'timestamp', default: migrations.func('now()'), notNull: true },
     fetched_at: { type: 'timestamp' },
     published_at: { type: 'timestamp' },
     content_hash: { type: 'varchar(64)' },

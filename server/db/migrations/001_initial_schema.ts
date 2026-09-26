@@ -8,28 +8,28 @@ export async function up(migrations: MigrationBuilder): Promise<void> {
 
   // Workspaces table
   await migrations.createTable('workspaces', {
-    id: { type: 'uuid', primaryKey: true, default: migrations.pgFunc('gen_random_uuid') },
+    id: { type: 'uuid', primaryKey: true, default: migrations.func('gen_random_uuid') },
     name: { type: 'varchar(255)', notNull: true },
-    created_at: { type: 'timestamp', default: migrations.pgFunc('now()'), notNull: true },
-    updated_at: { type: 'timestamp', default: migrations.pgFunc('now()'), notNull: true },
+    created_at: { type: 'timestamp', default: migrations.func('now()'), notNull: true },
+    updated_at: { type: 'timestamp', default: migrations.func('now()'), notNull: true },
   });
 
   // Users table
   await migrations.createTable('users', {
-    id: { type: 'uuid', primaryKey: true, default: migrations.pgFunc('gen_random_uuid') },
+    id: { type: 'uuid', primaryKey: true, default: migrations.func('gen_random_uuid') },
     email: { type: 'varchar(255)', notNull: true, unique: true },
     name: { type: 'varchar(255)', notNull: true },
-    created_at: { type: 'timestamp', default: migrations.pgFunc('now()'), notNull: true },
-    updated_at: { type: 'timestamp', default: migrations.pgFunc('now()'), notNull: true },
+    created_at: { type: 'timestamp', default: migrations.func('now()'), notNull: true },
+    updated_at: { type: 'timestamp', default: migrations.func('now()'), notNull: true },
   });
 
   // Workspace members table
   await migrations.createTable('workspace_members', {
-    id: { type: 'uuid', primaryKey: true, default: migrations.pgFunc('gen_random_uuid') },
+    id: { type: 'uuid', primaryKey: true, default: migrations.func('gen_random_uuid') },
     workspace_id: { type: 'uuid', notNull: true, references: '"workspaces"', onDelete: 'CASCADE' },
     user_id: { type: 'uuid', notNull: true, references: '"users"', onDelete: 'CASCADE' },
     role: { type: 'varchar(50)', notNull: true, default: "'MEMBER'" },
-    created_at: { type: 'timestamp', default: migrations.pgFunc('now()'), notNull: true },
+    created_at: { type: 'timestamp', default: migrations.func('now()'), notNull: true },
   });
 
   // Add unique constraint for workspace membership
@@ -39,7 +39,7 @@ export async function up(migrations: MigrationBuilder): Promise<void> {
 
   // Profiles table (workspace-scoped)
   await migrations.createTable('profiles', {
-    id: { type: 'uuid', primaryKey: true, default: migrations.pgFunc('gen_random_uuid') },
+    id: { type: 'uuid', primaryKey: true, default: migrations.func('gen_random_uuid') },
     workspace_id: { type: 'uuid', notNull: true, references: '"workspaces"', onDelete: 'CASCADE' },
     user_id: { type: 'uuid', notNull: true, references: '"users"', onDelete: 'CASCADE' },
     display_name: { type: 'varchar(255)' },
@@ -50,8 +50,8 @@ export async function up(migrations: MigrationBuilder): Promise<void> {
     voice_tone: { type: 'text' },
     banned_words: { type: 'text[]', default: "'{}'" },
     proof_points: { type: 'text[]', default: "'{}'" },
-    created_at: { type: 'timestamp', default: migrations.pgFunc('now()'), notNull: true },
-    updated_at: { type: 'timestamp', default: migrations.pgFunc('now()'), notNull: true },
+    created_at: { type: 'timestamp', default: migrations.func('now()'), notNull: true },
+    updated_at: { type: 'timestamp', default: migrations.func('now()'), notNull: true },
   });
 
   // Add unique constraint for profile per workspace/user
@@ -72,7 +72,7 @@ export async function up(migrations: MigrationBuilder): Promise<void> {
     problems: { type: 'text[]', default: "'{}'" },
     buying_signals: { type: 'text[]', default: "'{}'" },
     exclusions: { type: 'text[]', default: "'{}'" },
-    created_at: { type: 'timestamp', default: migrations.pgFunc('now()'), notNull: true },
+    created_at: { type: 'timestamp', default: migrations.func('now()'), notNull: true },
     updated_at: { type: 'timestamp', default: migrations.pgFunc('now()'), notNull: true },
   });
 
