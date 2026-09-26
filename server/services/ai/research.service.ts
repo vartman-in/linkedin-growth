@@ -86,7 +86,7 @@ export class ResearchService {
 
       // Check content type
       const contentType = response.headers['content-type'] || '';
-      if (!contentType.includes('text/html') && !contentType.includes('application/xhtml')) {
+      if (!(contentType as string).includes('text/html') && !(contentType as string).includes('application/xhtml')) {
         throw new Error(`Unsupported content type: ${contentType}`);
       }
 
@@ -116,7 +116,7 @@ export class ResearchService {
       };
 
       return source;
-    } catch (error) {
+    } catch (error: any) {
       if (error.response) {
         throw new Error(`Failed to fetch source: HTTP ${error.response.status}`);
       }
@@ -146,7 +146,7 @@ export class ResearchService {
         type: 'web',
         extractedAt: new Date()
       };
-    } catch (error) {
+    } catch (error: any) {
       throw new Error(`Failed to parse RSS feed: ${error.message}`);
     }
   }

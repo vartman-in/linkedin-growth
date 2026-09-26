@@ -55,7 +55,7 @@ export class OpenAIProvider implements AIProvider {
       });
 
       return response.choices[0]?.message?.content || '';
-    } catch (error) {
+    } catch (error: any) {
       throw new Error(`OpenAI API error: ${error.message}`);
     }
   }
@@ -83,7 +83,7 @@ export class OpenAIProvider implements AIProvider {
 
       const content = response.choices[0]?.message?.content || '{}';
       return JSON.parse(content) as T;
-    } catch (error) {
+    } catch (error: any) {
       throw new Error(`OpenAI structured completion error: ${error.message}`);
     }
   }
@@ -112,7 +112,7 @@ export class AnthropicProvider implements AIProvider {
       });
 
       return response.content[0]?.type === 'text' ? response.content[0].text : '';
-    } catch (error) {
+    } catch (error: any) {
       throw new Error(`Anthropic API error: ${error.message}`);
     }
   }
@@ -133,7 +133,7 @@ export class AnthropicProvider implements AIProvider {
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       const jsonStr = jsonMatch ? jsonMatch[0] : content;
       return JSON.parse(jsonStr) as T;
-    } catch (error) {
+    } catch (error: any) {
       throw new Error(`Anthropic structured completion error: ${error.message}`);
     }
   }

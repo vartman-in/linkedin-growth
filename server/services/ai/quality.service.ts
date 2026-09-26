@@ -599,7 +599,7 @@ JSON response:
     // Check if content references sources
     const hasReferences = sources.some(source => 
       draft.content.includes(source.title) || 
-      draft.content.includes(source.url)
+      draft.content.includes(source.url as string)
     );
 
     if (!hasReferences && sources.length > 0) {
@@ -745,8 +745,8 @@ JSON response:
   /**
    * Map gate name to issue type
    */
-  private mapGateToIssueType(gate: string): QualityIssue['type'] {
-    const mapping: Record<string, QualityIssue['type']> = {
+  private mapGateToIssueType(gate: string): any {
+    const mapping: Record<string, any> = {
       'thesis_fidelity': 'thesis_drift',
       'source_fidelity': 'source_fidelity',
       'unsupported_claims': 'unsupported_claim',

@@ -132,5 +132,5 @@ export async function down(migrations: MigrationBuilder): Promise<void> {
   await migrations.dropTable('intelligence_feedback');
   
   // Remove added columns from learning_signals
-  await migrations.dropColumns('learning_signals', 'user_id', 'entity_type', 'entity_id', 'provenance');
+  await migrations.dropColumns('learning_signals', ['user_id', 'entity_type', 'entity_id', 'provenance']);
 }

@@ -1,4 +1,4 @@
-import migrationRunner from 'node-pg-migrate';
+import runner = require('node-pg-migrate');
 import { Pool } from 'pg';
 import dotenv from 'dotenv';
 import path from 'path';
