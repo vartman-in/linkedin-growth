@@ -39,7 +39,7 @@ router.get('/ideas', async (req: Request, res: Response, next: NextFunction) => 
  */
 router.get('/ideas/:id', validate(uuidParamSchema), async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const idea = await contentIdeasService.getIdea(req.workspaceId!, req.params.id);
+    const idea = await contentIdeasService.getIdea(req.workspaceId!, req.params.id as string);
     if (!idea) {
       throw new NotFoundError('Content idea not found');
     }
@@ -82,7 +82,7 @@ router.post('/ideas/:id/generate', validate(uuidParamSchema), async (req: Reques
       icp: req.body.icp
     };
     
-    const draft = await contentIdeasService.generateDraft(req.workspaceId!, req.params.id, context);
+    const draft = await contentIdeasService.generateDraft(req.workspaceId!, req.params.id as string, context);
     res.status(201).json(draft);
   } catch (error) {
     next(error);
@@ -95,7 +95,7 @@ router.post('/ideas/:id/generate', validate(uuidParamSchema), async (req: Reques
  */
 router.put('/ideas/:id', validate(uuidParamSchema), validate(updateContentIdeaSchema), async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const idea = await contentIdeasService.updateIdea(req.workspaceId!, req.params.id, {
+    const idea = await contentIdeasService.updateIdea(req.workspaceId!, req.params.id as string, {
       title: req.body.title,
       source_reference: req.body.sourceReference,
       pillar: req.body.pillar,
@@ -118,7 +118,7 @@ router.put('/ideas/:id', validate(uuidParamSchema), validate(updateContentIdeaSc
  */
 router.delete('/ideas/:id', validate(uuidParamSchema), async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const deleted = await contentIdeasService.deleteIdea(req.workspaceId!, req.params.id);
+    const deleted = await contentIdeasService.deleteIdea(req.workspaceId!, req.params.id as string);
     if (!deleted) {
       throw new NotFoundError('Content idea not found');
     }
@@ -148,7 +148,7 @@ router.get('/drafts', async (req: Request, res: Response, next: NextFunction) =>
  */
 router.get('/drafts/:id', validate(uuidParamSchema), async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const draft = await contentIdeasService.getDraft(req.workspaceId!, req.params.id);
+    const draft = await contentIdeasService.getDraft(req.workspaceId!, req.params.id as string);
     if (!draft) {
       throw new NotFoundError('Content draft not found');
     }
@@ -164,7 +164,7 @@ router.get('/drafts/:id', validate(uuidParamSchema), async (req: Request, res: R
  */
 router.put('/drafts/:id', validate(uuidParamSchema), async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const draft = await contentIdeasService.updateDraft(req.workspaceId!, req.params.id, {
+    const draft = await contentIdeasService.updateDraft(req.workspaceId!, req.params.id as string, {
       title: req.body.title,
       body: req.body.body,
       content_type: req.body.contentType,
@@ -186,7 +186,7 @@ router.put('/drafts/:id', validate(uuidParamSchema), async (req: Request, res: R
  */
 router.post('/drafts/:id/approve', validate(uuidParamSchema), async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const draft = await contentIdeasService.approveDraft(req.workspaceId!, req.params.id, req.userId);
+    const draft = await contentIdeasService.approveDraft(req.workspaceId!, req.params.id as string, req.userId);
     if (!draft) {
       throw new NotFoundError('Content draft not found');
     }

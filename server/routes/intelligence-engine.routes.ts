@@ -103,7 +103,7 @@ router.get('/sources/:id', async (req: Request, res: Response, next: NextFunctio
  */
 router.post('/sources/:id/process', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const source = await intelligenceService.getRepository().getSource(req.workspaceId!, req.params.id);
+    const source = await intelligenceService.getRepository().getSource(req.workspaceId!, req.params.id as string);
     if (!source) {
       throw new NotFoundError('Source not found');
     }
@@ -157,7 +157,7 @@ router.get('/topics', async (req: Request, res: Response, next: NextFunction) =>
  */
 router.get('/topics/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const topic = await intelligenceService.getRepository().getTopic(req.workspaceId!, req.params.id);
+    const topic = await intelligenceService.getRepository().getTopic(req.workspaceId!, req.params.id as string);
     if (!topic) {
       throw new NotFoundError('Topic not found');
     }
@@ -266,7 +266,7 @@ router.get('/opportunities', async (req: Request, res: Response, next: NextFunct
  */
 router.get('/opportunities/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const details = await intelligenceService.getOpportunityDetails(req.workspaceId!, req.params.id);
+    const details = await intelligenceService.getOpportunityDetails(req.workspaceId!, req.params.id as string);
     res.json(details);
   } catch (error) {
     if (error instanceof Error && error.message === 'Opportunity not found') {
@@ -302,7 +302,7 @@ router.put('/opportunities/:id/status', async (req: Request, res: Response, next
     const { status } = req.body;
     const opportunity = await intelligenceService.getRepository().updateOpportunity(
       req.workspaceId!,
-      req.params.id,
+      req.params.id as string,
       { status }
     );
     if (!opportunity) {
@@ -320,7 +320,7 @@ router.put('/opportunities/:id/status', async (req: Request, res: Response, next
  */
 router.post('/opportunities/:id/convert', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const result = await intelligenceService.convertOpportunityToIdea(req.workspaceId!, req.params.id, req.userId);
+    const result = await intelligenceService.convertOpportunityToIdea(req.workspaceId!, req.params.id as string, req.userId);
     res.json(result);
   } catch (error) {
     next(error);
