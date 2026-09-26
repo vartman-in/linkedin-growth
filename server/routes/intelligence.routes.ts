@@ -87,7 +87,7 @@ router.get('/sources', async (req: Request, res: Response, next: NextFunction) =
  */
 router.get('/sources/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const details = await intelligenceService.getSourceDetails(req.workspaceId!, req.params.id);
+    const details = await intelligenceService.getSourceDetails(req.workspaceId!, req.params.id as string);
     res.json(details);
   } catch (error) {
     if (error instanceof Error && error.message === 'Source not found') {

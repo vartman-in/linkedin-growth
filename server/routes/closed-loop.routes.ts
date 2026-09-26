@@ -140,7 +140,7 @@ router.get('/feedback/:entityType/:entityId', async (req: Request, res: Response
     const feedback = await feedbackService.getEntityFeedback(
       req.workspaceId!,
       req.params.entityType as any,
-      req.params.entityId
+      req.params.entityId as string
     );
     res.json(feedback);
   } catch (error) {
@@ -196,7 +196,7 @@ router.get('/performance/:contentId', async (req: Request, res: Response, next: 
   try {
     const performance = await closedLoopRepo.getPerformanceByContent(
       req.workspaceId!,
-      req.params.contentId
+      req.params.contentId as string
     );
     res.json(performance);
   } catch (error) {
@@ -326,7 +326,7 @@ router.post('/jobs/:id/execute', async (req: Request, res: Response, next: NextF
     const { JobExecutor } = await import('../services/job-executor.service');
     const jobExecutor = new JobExecutor(pool);
     
-    await jobExecutor.executeJob(req.params.id);
+    await jobExecutor.executeJob(req.params.id as string);
     res.json({ success: true });
   } catch (error) {
     next(error);

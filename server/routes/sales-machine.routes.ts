@@ -41,7 +41,7 @@ router.get('/leads', async (req: Request, res: Response, next: NextFunction) => 
  */
 router.get('/leads/:id', validate(uuidParamSchema), async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const lead = await salesMachineService.getLead(req.workspaceId!, req.params.id);
+    const lead = await salesMachineService.getLead(req.workspaceId!, req.params.id as string);
     if (!lead) {
       throw new NotFoundError('Lead not found');
     }
@@ -76,7 +76,7 @@ router.post('/leads', validate(createLeadSchema), async (req: Request, res: Resp
  */
 router.put('/leads/:id', validate(uuidParamSchema), validate(updateLeadSchema), async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const lead = await salesMachineService.updateLead(req.workspaceId!, req.params.id, {
+    const lead = await salesMachineService.updateLead(req.workspaceId!, req.params.id as string, {
       name: req.body.name,
       profile_url: req.body.profileUrl,
       company: req.body.company,
@@ -99,7 +99,7 @@ router.put('/leads/:id', validate(uuidParamSchema), validate(updateLeadSchema), 
  */
 router.post('/leads/:id/qualify', validate(uuidParamSchema), async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const lead = await salesMachineService.qualifyLead(req.workspaceId!, req.params.id);
+    const lead = await salesMachineService.qualifyLead(req.workspaceId!, req.params.id as string);
     if (!lead) {
       throw new NotFoundError('Lead not found');
     }
@@ -115,7 +115,7 @@ router.post('/leads/:id/qualify', validate(uuidParamSchema), async (req: Request
  */
 router.post('/leads/:id/outreach', validate(uuidParamSchema), async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const message = await salesMachineService.generateOutreach(req.workspaceId!, req.params.id, req.body);
+    const message = await salesMachineService.generateOutreach(req.workspaceId!, req.params.id as string, req.body);
     res.json({ message });
   } catch (error) {
     next(error);
@@ -128,7 +128,7 @@ router.post('/leads/:id/outreach', validate(uuidParamSchema), async (req: Reques
  */
 router.delete('/leads/:id', validate(uuidParamSchema), async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const deleted = await salesMachineService.deleteLead(req.workspaceId!, req.params.id);
+    const deleted = await salesMachineService.deleteLead(req.workspaceId!, req.params.id as string);
     if (!deleted) {
       throw new NotFoundError('Lead not found');
     }
@@ -163,7 +163,7 @@ router.post('/conversations', async (req: Request, res: Response, next: NextFunc
  */
 router.get('/conversations/:id', validate(uuidParamSchema), async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const conversation = await salesMachineService.getConversation(req.workspaceId!, req.params.id);
+    const conversation = await salesMachineService.getConversation(req.workspaceId!, req.params.id as string);
     if (!conversation) {
       throw new NotFoundError('Conversation not found');
     }
@@ -179,7 +179,7 @@ router.get('/conversations/:id', validate(uuidParamSchema), async (req: Request,
  */
 router.get('/leads/:id/conversations', validate(uuidParamSchema), async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const conversations = await salesMachineService.getConversationsForLead(req.workspaceId!, req.params.id);
+    const conversations = await salesMachineService.getConversationsForLead(req.workspaceId!, req.params.id as string);
     res.json(conversations);
   } catch (error) {
     next(error);
@@ -193,7 +193,7 @@ router.get('/leads/:id/conversations', validate(uuidParamSchema), async (req: Re
 router.post('/conversations/:id/messages', validate(uuidParamSchema), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const message = await salesMachineService.addMessage(
-      req.params.id,
+      req.params.id as string,
       req.body.direction,
       req.body.body
     );
@@ -209,7 +209,7 @@ router.post('/conversations/:id/messages', validate(uuidParamSchema), async (req
  */
 router.get('/conversations/:id/messages', validate(uuidParamSchema), async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const messages = await salesMachineService.getMessages(req.params.id);
+    const messages = await salesMachineService.getMessages(req.params.id as string);
     res.json(messages);
   } catch (error) {
     next(error);
@@ -251,7 +251,7 @@ router.get('/pipeline', async (req: Request, res: Response, next: NextFunction) 
  */
 router.get('/pipeline/:id', validate(uuidParamSchema), async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const opportunity = await salesMachineService.getOpportunity(req.workspaceId!, req.params.id);
+    const opportunity = await salesMachineService.getOpportunity(req.workspaceId!, req.params.id as string);
     if (!opportunity) {
       throw new NotFoundError('Opportunity not found');
     }
@@ -286,7 +286,7 @@ router.put('/pipeline/:id/stage', validate(uuidParamSchema), async (req: Request
   try {
     const opportunity = await salesMachineService.updateOpportunityStage(
       req.workspaceId!,
-      req.params.id,
+      req.params.id as string,
       req.body.stage
     );
     if (!opportunity) {

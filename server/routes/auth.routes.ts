@@ -113,7 +113,7 @@ router.get('/workspaces/:workspaceId', authenticate, requireWorkspaceAccess, asy
   try {
     const result = await pool.query(
       'SELECT id, name, created_at FROM workspaces WHERE id = $1',
-      [req.params.workspaceId]
+      [req.params.workspaceId as string]
     );
 
     if (result.rows.length === 0) {

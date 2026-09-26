@@ -36,7 +36,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
  */
 router.get('/:id', validateParams(uuidParamSchema), async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const lead = await leadRepo.findById(req.workspaceId!, req.params.id);
+    const lead = await leadRepo.findById(req.workspaceId!, req.params.id as string);
     if (!lead) {
       throw new NotFoundError('Lead not found');
     }
@@ -73,7 +73,7 @@ router.post('/', validate(createLeadSchema), async (req: Request, res: Response,
  */
 router.put('/:id', validateParams(uuidParamSchema), validate(updateLeadSchema), async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const lead = await leadRepo.update(req.workspaceId!, req.params.id, {
+    const lead = await leadRepo.update(req.workspaceId!, req.params.id as string, {
       name: req.body.name,
       profile_url: req.body.profileUrl,
       company: req.body.company,
@@ -97,7 +97,7 @@ router.put('/:id', validateParams(uuidParamSchema), validate(updateLeadSchema), 
  */
 router.delete('/:id', validateParams(uuidParamSchema), async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const deleted = await leadRepo.delete(req.workspaceId!, req.params.id);
+    const deleted = await leadRepo.delete(req.workspaceId!, req.params.id as string);
     if (!deleted) {
       throw new NotFoundError('Lead not found');
     }
