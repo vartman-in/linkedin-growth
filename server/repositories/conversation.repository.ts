@@ -56,13 +56,13 @@ export class ConversationRepository {
     const values: any[] = [];
     let paramCount = 1;
 
-    if (data.lead_id !== undefined) {
+    if ((data as any).lead_id !== undefined) {
       updates.push(`lead_id = $${paramCount++}`);
-      values.push(data.lead_id);
+      values.push((data as any).lead_id);
     }
-    if (data.status !== undefined) {
+    if ((data as any).status !== undefined) {
       updates.push(`status = $${paramCount++}`);
-      values.push(data.status);
+      values.push((data as any).status);
     }
 
     if (updates.length === 0) {

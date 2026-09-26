@@ -78,9 +78,9 @@ export class ContentIdeaRepository {
       updates.push(`angle = $${paramCount++}`);
       values.push(data.angle);
     }
-    if (data.status !== undefined) {
+    if ((data as any).status !== undefined) {
       updates.push(`status = $${paramCount++}`);
-      values.push(data.status);
+      values.push((data as any).status);
     }
 
     if (updates.length === 0) {

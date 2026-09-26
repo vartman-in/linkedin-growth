@@ -28,14 +28,14 @@ const feedbackSchema = z.object({
   entityType: z.enum(['opportunity', 'idea', 'draft', 'content', 'topic']),
   entityId: z.string().uuid(),
   feedbackType: z.enum(['accepted', 'dismissed', 'edited', 'converted', 'published', 'rejected']),
-  feedbackData: z.record(z.any()).optional(),
+  feedbackData: z.record(z.string(), z.any()).optional(),
 });
 
 const performanceSchema = z.object({
   contentId: z.string().uuid(),
   platform: z.string(),
   publishedAt: z.string().datetime(),
-  metrics: z.record(z.number()),
+  metrics: z.record(z.string(), z.number()),
   provenance: z.enum(['VERIFIED_PLATFORM', 'USER_ENTERED', 'IMPORTED', 'SYSTEM_CALCULATED']),
   sourceReference: z.string().optional(),
 });

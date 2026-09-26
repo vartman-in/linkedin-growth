@@ -84,13 +84,13 @@ export class ContentDraftRepository {
       updates.push(`content_type = $${paramCount++}`);
       values.push(data.content_type);
     }
-    if (data.status !== undefined) {
+    if ((data as any).status !== undefined) {
       updates.push(`status = $${paramCount++}`);
-      values.push(data.status);
+      values.push((data as any).status);
     }
-    if (data.version !== undefined) {
+    if ((data as any).version !== undefined) {
       updates.push(`version = $${paramCount++}`);
-      values.push(data.version);
+      values.push((data as any).version);
     }
 
     if (updates.length === 0) {

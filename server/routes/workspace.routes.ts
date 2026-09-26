@@ -58,12 +58,12 @@ router.post('/', validate(createWorkspaceSchema), async (req: Request, res: Resp
 router.get('/:id', validateParams(uuidParamSchema), async (req: Request, res: Response, next: NextFunction) => {
   try {
     // Verify user has access to this workspace
-    const hasAccess = await authService.hasWorkspaceAccess(req.userId!, req.params.id);
+    const hasAccess = await authService.hasWorkspaceAccess(req.userId!, req.params.id as string);
     if (!hasAccess) {
       throw new ForbiddenError('Access denied to workspace');
     }
 
-    const workspace = await workspaceRepo.findById(req.params.id);
+    const workspace = await workspaceRepo.findById(req.params.id as string);
     if (!workspace) {
       throw new NotFoundError('Workspace not found');
     }
@@ -81,18 +81,18 @@ router.get('/:id', validateParams(uuidParamSchema), async (req: Request, res: Re
 router.put('/:id', validateParams(uuidParamSchema), validate(updateWorkspaceSchema), async (req: Request, res: Response, next: NextFunction) => {
   try {
     // Verify user has access to this workspace
-    const hasAccess = await authService.hasWorkspaceAccess(req.userId!, req.params.id);
+    const hasAccess = await authService.hasWorkspaceAccess(req.userId!, req.params.id as string);
     if (!hasAccess) {
       throw new ForbiddenError('Access denied to workspace');
     }
 
     // Verify user is an owner
-    const role = await authService.getWorkspaceRole(req.userId!, req.params.id);
+    const role = await authService.getWorkspaceRole(req.userId!, req.params.id as string);
     if (role !== 'OWNER') {
       throw new ForbiddenError('Only workspace owners can update workspace settings');
     }
 
-    const workspace = await workspaceRepo.update(req.params.id, req.body.name);
+    const workspace = await workspaceRepo.update(req.params.id as string, req.body.name);
     if (!workspace) {
       throw new NotFoundError('Workspace not found');
     }
@@ -121,7 +121,7 @@ router.delete('/:id', validateParams(uuidParamSchema), async (req: Request, res:
       throw new ForbiddenError('Only workspace owners can delete workspaces');
     }
 
-    const deleted = await workspaceRepo.delete(req.params.id);
+    const deleted = await workspaceRepo.delete(req.params.id as string);
     if (!deleted) {
       throw new NotFoundError('Workspace not found');
     }
@@ -150,7 +150,7 @@ router.post('/:id/members', validateParams(uuidParamSchema), validate(addWorkspa
       throw new ForbiddenError('Only workspace owners can add members');
     }
 
-    const member = await memberRepo.addMember(req.params.id, req.body.userId, req.body.role);
+    const member = await memberRepo.addMember(req.params.id as string, req.body.userId, req.body.role);
     res.status(201).json(member);
   } catch (error) {
     next(error);
@@ -165,12 +165,12 @@ router.post('/:id/members', validateParams(uuidParamSchema), validate(addWorkspa
 router.get('/:id/members', validateParams(uuidParamSchema), async (req: Request, res: Response, next: NextFunction) => {
   try {
     // Verify user has access to this workspace
-    const hasAccess = await authService.hasWorkspaceAccess(req.userId!, req.params.id);
+    const hasAccess = await authService.hasWorkspaceAccess(req.userId!, req.params.id as string);
     if (!hasAccess) {
       throw new ForbiddenError('Access denied to workspace');
     }
 
-    const members = await memberRepo.findByWorkspace(req.params.id);
+    const members = await memberRepo.findByWorkspace(req.params.id as string);
     res.json(members);
   } catch (error) {
     next(error);
@@ -185,18 +185,18 @@ router.get('/:id/members', validateParams(uuidParamSchema), async (req: Request,
 router.put('/:workspaceId/members/:userId', validate(updateWorkspaceMemberSchema), async (req: Request, res: Response, next: NextFunction) => {
   try {
     // Verify user has access to this workspace
-    const hasAccess = await authService.hasWorkspaceAccess(req.userId!, req.params.workspaceId);
+    const hasAccess = await authService.hasWorkspaceAccess(req.userId!, req.params.workspaceId as string);
     if (!hasAccess) {
       throw new ForbiddenError('Access denied to workspace');
     }
 
     // Verify user is an owner
-    const role = await authService.getWorkspaceRole(req.userId!, req.params.workspaceId);
+    const role = await authService.getWorkspaceRole(req.userId!, req.params.workspaceId as string);
     if (role !== 'OWNER') {
       throw new ForbiddenError('Only workspace owners can update member roles');
     }
 
-    const member = await memberRepo.updateRole(req.params.workspaceId, req.params.userId, req.body.role);
+    const member = await memberRepo.updateRole(req.params.workspaceId as string, req.params.userId as string, req.body.role);
     if (!member) {
       throw new NotFoundError('Member not found');
     }
@@ -214,18 +214,18 @@ router.put('/:workspaceId/members/:userId', validate(updateWorkspaceMemberSchema
 router.delete('/:workspaceId/members/:userId', async (req: Request, res: Response, next: NextFunction) => {
   try {
     // Verify user has access to this workspace
-    const hasAccess = await authService.hasWorkspaceAccess(req.userId!, req.params.workspaceId);
+    const hasAccess = await authService.hasWorkspaceAccess(req.userId!, req.params.workspaceId as string);
     if (!hasAccess) {
       throw new ForbiddenError('Access denied to workspace');
     }
 
     // Verify user is an owner
-    const role = await authService.getWorkspaceRole(req.userId!, req.params.workspaceId);
+    const role = await authService.getWorkspaceRole(req.userId!, req.params.workspaceId as string);
     if (role !== 'OWNER') {
       throw new ForbiddenError('Only workspace owners can remove members');
     }
 
-    const deleted = await memberRepo.removeMember(req.params.workspaceId, req.params.userId);
+    const deleted = await memberRepo.removeMember(req.params.workspaceId as string, req.params.userId as string);
     if (!deleted) {
       throw new NotFoundError('Member not found');
     }

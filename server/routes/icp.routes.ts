@@ -35,7 +35,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
  */
 router.get('/:id', validateParams(uuidParamSchema), async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const icp = await icpRepo.findById(req.workspaceId!, req.params.id);
+    const icp = await icpRepo.findById(req.workspaceId!, req.params.id as string);
     if (!icp) {
       throw new NotFoundError('ICP not found');
     }
@@ -75,7 +75,7 @@ router.post('/', validate(createICPSchema), async (req: Request, res: Response, 
  */
 router.put('/:id', validateParams(uuidParamSchema), validate(updateICPSchema), async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const icp = await icpRepo.update(req.workspaceId!, req.params.id, {
+    const icp = await icpRepo.update(req.workspaceId!, req.params.id as string, {
       name: req.body.name,
       target_roles: req.body.targetRoles,
       industries: req.body.industries,
@@ -102,7 +102,7 @@ router.put('/:id', validateParams(uuidParamSchema), validate(updateICPSchema), a
  */
 router.delete('/:id', validateParams(uuidParamSchema), async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const deleted = await icpRepo.delete(req.workspaceId!, req.params.id);
+    const deleted = await icpRepo.delete(req.workspaceId!, req.params.id as string);
     if (!deleted) {
       throw new NotFoundError('ICP not found');
     }

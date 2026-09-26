@@ -74,13 +74,13 @@ export class LeadRepository {
       updates.push(`title = $${paramCount++}`);
       values.push(data.title);
     }
-    if (data.status !== undefined) {
+    if ((data as any).status !== undefined) {
       updates.push(`status = $${paramCount++}`);
-      values.push(data.status);
+      values.push((data as any).status);
     }
-    if (data.source !== undefined) {
+    if ((data as any).source !== undefined) {
       updates.push(`source = $${paramCount++}`);
-      values.push(data.source);
+      values.push((data as any).source);
     }
 
     if (updates.length === 0) {

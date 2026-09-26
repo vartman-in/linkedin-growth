@@ -65,17 +65,17 @@ export class PipelineOpportunityRepository {
       updates.push(`lead_id = $${paramCount++}`);
       values.push(data.lead_id);
     }
-    if (data.stage !== undefined) {
+    if ((data as any).stage !== undefined) {
       updates.push(`stage = $${paramCount++}`);
-      values.push(data.stage);
+      values.push((data as any).stage);
     }
-    if (data.value !== undefined) {
+    if ((data as any).value !== undefined) {
       updates.push(`value = $${paramCount++}`);
-      values.push(data.value);
+      values.push((data as any).value);
     }
-    if (data.source !== undefined) {
+    if ((data as any).source !== undefined) {
       updates.push(`source = $${paramCount++}`);
-      values.push(data.source);
+      values.push((data as any).source);
     }
 
     if (updates.length === 0) {
