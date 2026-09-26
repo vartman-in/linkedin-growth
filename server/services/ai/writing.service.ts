@@ -83,7 +83,7 @@ Generate the content now:`;
         hook: strategy.hook,
         cta: strategy.cta,
         slides,
-        meta {
+        metadata: {
           strategy,
           claims: research.claims,
           sources: research.sources,
@@ -131,7 +131,7 @@ Generate the content now:`;
       hook: strategy.hook,
       cta: strategy.cta,
       slides,
-      meta {
+      metadata: {
         strategy,
         claims: research.claims,
         sources: research.sources,
@@ -364,7 +364,7 @@ Revise the content to address the feedback while maintaining the core message an
         ...draft,
         id: uuidv4(),
         content: revisedContent,
-        meta {
+        metadata: {
           ...draft.metadata,
           qualityScore: 0,
           qualityStatus: 'review_required',
