@@ -452,3 +452,75 @@ export const intelligenceEngineApi = {
 export const healthApi = {
   check: () => request<{ status: string; timestamp: string; version: string }>('/health'),
 };
+
+// ============ CLOSED-LOOP API ============
+
+export const closedLoopApi = {
+  // Feedback
+  recordFeedback: (data: {
+    entityType: 'opportunity' | 'idea' | 'draft' | 'content' | 'topic';
+    entityId: string;
+    feedbackType: 'accepted' | 'dismissed' | 'edited' | 'converted' | 'published' | 'rejected';
+    feedbackData?: Record<string, any>;
+  }) =>
+    request<any>('/closed-loop/feedback', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  getFeedbackSummary: () => request<any>('/closed-loop/feedback'),
+
+  getRecentFeedback: (limit?: number) =>
+    request<any[]>(`/closed-loop/feedback/recent${limit ? `?limit=${limit}` : ''}`),
+
+  getEntityFeedback: (entityType: string, entityId: string) =>
+    request<any[]>(`/closed-loop/feedback/${entityType}/${entityId}`),
+
+  // Performance
+  recordPerformance: (data: {
+    contentId: string;
+    platform: string;
+    publishedAt: string;
+    metrics: Record<string, number>;
+    provenance: 'VERIFIED_PLATFORM' | 'USER_ENTERED' | 'IMPORTED' | 'SYSTEM_CALCULATED';
+    sourceReference?: string;
+  }) =>
+    request<any>('/closed-loop/performance', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  getRecentPerformance: (limit?: number) =>
+    request<any[]>(`/closed-loop/performance${limit ? `?limit=${limit}` : ''}`),
+
+  getContentPerformance: (contentId: string) =>
+    request<any[]>(`/closed-loop/performance/${contentId}`),
+
+  // Patterns
+  detectPatterns: () =>
+    request<any>('/closed-loop/patterns/detect', {
+      method: 'POST',
+    }),
+
+  getPatterns: (patternType?: string) =>
+    request<any[]>(`/closed-loop/patterns${patternType ? `?patternType=${patternType}` : ''}`),
+
+  // Insights
+  generateInsights: () =>
+    request<any>('/closed-loop/insights/generate', {
+      method: 'POST',
+    }),
+
+  getInsights: (insightType?: string, limit?: number) =>
+    request<any[]>(`/closed-loop/insights${insightType ? `?insightType=${insightType}` : ''}${limit ? `&limit=${limit}` : ''}`),
+
+  // Jobs
+  scheduleJob: (jobType: string, scheduledAt: string) =>
+    request<any>('/closed-loop/jobs/schedule', {
+      method: 'POST',
+      body: JSON.stringify({ jobType, scheduledAt }),
+    }),
+
+  getRecentJobs: (limit?: number) =>
+    request<any[]>(`/closed-loop/jobs${limit ? `?limit=${limit}` : ''}`),
+};

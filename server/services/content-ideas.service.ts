@@ -7,9 +7,14 @@ import { Pool } from 'pg';
 import { researchService, strategyService, writingService, qualityService } from '../services/ai';
 import { AIContext, ContentDraft } from '../services/ai';
 import { v4 as uuidv4 } from 'uuid';
+import { IntelligenceFeedbackService } from './intelligence/feedback.service';
 
 export class ContentIdeasService {
-  constructor(private pool: Pool) {}
+  private feedbackService: IntelligenceFeedbackService;
+
+  constructor(private pool: Pool) {
+    this.feedbackService = new IntelligenceFeedbackService(pool);
+  }
 
   /**
    * Create a new content idea
@@ -302,8 +307,15 @@ export class ContentIdeasService {
   /**
    * Approve draft
    */
-  async approveDraft(workspaceId: string, draftId: string): Promise<any> {
-    return this.updateDraft(workspaceId, draftId, { status: 'APPROVED' });
+  async approveDraft(workspaceId: string, draftId: string, userId?: string): Promise<any> {
+    const draft = await this.updateDraft(workspaceId, draftId, { status: 'APPROVED' });
+    
+    // Record feedback for closed-loop learning
+    if (draft) {
+      await this.feedbackService.recordDraftApproved(workspaceId, draftId, userId);
+    }
+    
+    return draft;
   }
 
   /**

@@ -186,7 +186,7 @@ router.put('/drafts/:id', validate(uuidParamSchema), async (req: Request, res: R
  */
 router.post('/drafts/:id/approve', validate(uuidParamSchema), async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const draft = await contentIdeasService.approveDraft(req.workspaceId!, req.params.id);
+    const draft = await contentIdeasService.approveDraft(req.workspaceId!, req.params.id, req.userId);
     if (!draft) {
       throw new NotFoundError('Content draft not found');
     }

@@ -7,7 +7,9 @@ import {
   Eye, Loader, Plus, ExternalLink, BarChart3, Zap
 } from 'lucide-react';
 
-type BrainTab = 'overview' | 'opportunities' | 'trends' | 'gaps' | 'sources';
+import { closedLoopApi } from '../api/client';
+
+type BrainTab = 'overview' | 'opportunities' | 'trends' | 'gaps' | 'sources' | 'insights' | 'patterns';
 
 export default function BrainPage() {
   const { activeWorkspace } = useWorkspace();
@@ -19,6 +21,8 @@ export default function BrainPage() {
   const [trends, setTrends] = useState<any[]>([]);
   const [gaps, setGaps] = useState<any[]>([]);
   const [sources, setSources] = useState<any[]>([]);
+  const [insights, setInsights] = useState<any[]>([]);
+  const [patterns, setPatterns] = useState<any[]>([]);
   
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -39,12 +43,14 @@ export default function BrainPage() {
       setLoading(true);
       setError(null);
       
-      const [summaryData, opportunitiesData, trendsData, gapsData, sourcesData] = await Promise.allSettled([
+      const [summaryData, opportunitiesData, trendsData, gapsData, sourcesData, insightsData, patternsData] = await Promise.allSettled([
         intelligenceEngineApi.getSummary(),
         intelligenceEngineApi.getOpportunities(),
         intelligenceEngineApi.getTrends(),
         intelligenceEngineApi.getGaps(),
-        intelligenceEngineApi.getSources()
+        intelligenceEngineApi.getSources(),
+        closedLoopApi.getInsights(),
+        closedLoopApi.getPatterns()
       ]);
 
       setSummary(summaryData.status === 'fulfilled' ? summaryData.value : null);
@@ -52,6 +58,8 @@ export default function BrainPage() {
       setTrends(trendsData.status === 'fulfilled' ? trendsData.value : []);
       setGaps(gapsData.status === 'fulfilled' ? gapsData.value : []);
       setSources(sourcesData.status === 'fulfilled' ? sourcesData.value : []);
+      setInsights(insightsData.status === 'fulfilled' ? insightsData.value : []);
+      setPatterns(patternsData.status === 'fulfilled' ? patternsData.value : []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load intelligence data');
       console.error('Failed to load intelligence:', err);
@@ -101,6 +109,8 @@ export default function BrainPage() {
     { id: 'trends' as const, label: 'Trends', icon: TrendingUp },
     { id: 'gaps' as const, label: 'Content Gaps', icon: AlertTriangle },
     { id: 'sources' as const, label: 'Sources', icon: Link2 },
+    { id: 'insights' as const, label: 'Learning Insights', icon: Sparkles },
+    { id: 'patterns' as const, label: 'Patterns', icon: Zap },
   ];
 
   if (loading) {
@@ -213,6 +223,12 @@ export default function BrainPage() {
       )}
       {activeTab === 'sources' && (
         <SourcesPanel sources={sources} onView={setSelectedSource} />
+      )}
+      {activeTab === 'insights' && (
+        <InsightsPanel insights={insights} />
+      )}
+      {activeTab === 'patterns' && (
+        <PatternsPanel patterns={patterns} />
       )}
 
       {/* Opportunity Detail Modal */}
@@ -692,6 +708,206 @@ function SourceDetailModal({ source, onClose }: { source: any; onClose: () => vo
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+function InsightsPanel({ insights }: { insights: any[] }) {
+  if (insights.length === 0) {
+    return (
+      <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
+        <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <Sparkles className="w-8 h-8 text-gray-400" />
+        </div>
+        <h3 className="text-lg font-semibold text-gray-800 mb-2">No learning insights yet</h3>
+        <p className="text-sm text-gray-500 max-w-md mx-auto">
+          Learning insights will appear here after the system detects patterns from your feedback and content performance.
+        </p>
+      </div>
+    );
+  }
+
+  const insightTypeColors: Record<string, string> = {
+    recommendation: 'bg-blue-100 text-blue-700',
+    observation: 'bg-green-100 text-green-700',
+    warning: 'bg-orange-100 text-orange-700',
+    opportunity: 'bg-purple-100 text-purple-700',
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
+        <div className="flex items-start gap-2">
+          <Sparkles className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-semibold text-gray-800">Learning Insights</p>
+            <p className="text-xs text-gray-600 mt-1">
+              AI-generated insights based on your feedback patterns and content performance. Each insight includes evidence and confidence levels.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {insights.map((insight, idx) => (
+        <div key={insight.id || idx} className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-all">
+          <div className="flex items-start justify-between mb-3">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-2">
+                <h4 className="text-base font-bold text-gray-800">{insight.title}</h4>
+                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${insightTypeColors[insight.insight_type] || 'bg-gray-100 text-gray-600'}`}>
+                  {insight.insight_type}
+                </span>
+              </div>
+              <p className="text-sm text-gray-600 mb-3">{insight.description}</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+            <div className="bg-gray-50 rounded-lg p-2">
+              <p className="text-xs text-gray-500 mb-1">Confidence</p>
+              <p className="text-sm font-bold text-gray-800">{(insight.confidence * 100).toFixed(0)}%</p>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-2">
+              <p className="text-xs text-gray-500 mb-1">Observations</p>
+              <p className="text-sm font-bold text-gray-800">{insight.observation_count}</p>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-2">
+              <p className="text-xs text-gray-500 mb-1">Generated By</p>
+              <p className="text-sm font-bold text-gray-800 capitalize">{insight.generated_by?.toLowerCase() || 'unknown'}</p>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-2">
+              <p className="text-xs text-gray-500 mb-1">Status</p>
+              <p className="text-sm font-bold text-gray-800">{insight.is_active ? 'Active' : 'Expired'}</p>
+            </div>
+          </div>
+
+          {insight.evidence_summary && (
+            <div className="mb-3">
+              <p className="text-xs font-medium text-gray-700 mb-1">Evidence</p>
+              <p className="text-sm text-gray-600">{insight.evidence_summary}</p>
+            </div>
+          )}
+
+          {insight.is_actionable && insight.action_suggestion && (
+            <div className="bg-primary-light/50 border border-primary/20 rounded-lg p-3">
+              <p className="text-xs font-medium text-primary mb-1">Suggested Action</p>
+              <p className="text-sm text-gray-700">{insight.action_suggestion}</p>
+            </div>
+          )}
+
+          {insight.time_range_start && insight.time_range_end && (
+            <div className="mt-3 pt-3 border-t border-gray-100">
+              <p className="text-xs text-gray-500">
+                Time range: {new Date(insight.time_range_start).toLocaleDateString()} - {new Date(insight.time_range_end).toLocaleDateString()}
+              </p>
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function PatternsPanel({ patterns }: { patterns: any[] }) {
+  if (patterns.length === 0) {
+    return (
+      <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
+        <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <Zap className="w-8 h-8 text-gray-400" />
+        </div>
+        <h3 className="text-lg font-semibold text-gray-800 mb-2">No patterns detected yet</h3>
+        <p className="text-sm text-gray-500 max-w-md mx-auto">
+          Patterns will appear here after the system analyzes your feedback and content performance data. More observations are needed to detect meaningful patterns.
+        </p>
+      </div>
+    );
+  }
+
+  const patternTypeColors: Record<string, string> = {
+    topic_preference: 'bg-blue-100 text-blue-700',
+    format_preference: 'bg-green-100 text-green-700',
+    time_preference: 'bg-purple-100 text-purple-700',
+    audience_response: 'bg-orange-100 text-orange-700',
+    content_performance: 'bg-pink-100 text-pink-700',
+    engagement_pattern: 'bg-indigo-100 text-indigo-700',
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-4">
+        <div className="flex items-start gap-2">
+          <Zap className="w-5 h-5 text-green-600 shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-semibold text-gray-800">Detected Patterns</p>
+            <p className="text-xs text-gray-600 mt-1">
+              Patterns detected from your feedback and content performance. Each pattern includes confidence levels and evidence counts.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {patterns.map((pattern, idx) => (
+        <div key={pattern.id || idx} className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-all">
+          <div className="flex items-start justify-between mb-3">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-2">
+                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${patternTypeColors[pattern.pattern_type] || 'bg-gray-100 text-gray-600'}`}>
+                  {pattern.pattern_type?.replace(/_/g, ' ')}
+                </span>
+                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                  pattern.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
+                }`}>
+                  {pattern.is_active ? 'Active' : 'Expired'}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+            <div className="bg-gray-50 rounded-lg p-2">
+              <p className="text-xs text-gray-500 mb-1">Confidence</p>
+              <p className="text-sm font-bold text-gray-800">{(pattern.confidence * 100).toFixed(0)}%</p>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-2">
+              <p className="text-xs text-gray-500 mb-1">Observations</p>
+              <p className="text-sm font-bold text-gray-800">{pattern.observation_count}</p>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-2">
+              <p className="text-xs text-gray-500 mb-1">Evidence</p>
+              <p className="text-sm font-bold text-gray-800">{pattern.evidence_ids?.length || 0} records</p>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-2">
+              <p className="text-xs text-gray-500 mb-1">Generated By</p>
+              <p className="text-sm font-bold text-gray-800 capitalize">{pattern.generated_by?.toLowerCase() || 'unknown'}</p>
+            </div>
+          </div>
+
+          {pattern.pattern_data && (
+            <div className="mb-3">
+              <p className="text-xs font-medium text-gray-700 mb-1">Pattern Details</p>
+              <div className="bg-gray-50 rounded-lg p-3 text-sm">
+                <pre className="whitespace-pre-wrap text-xs">{JSON.stringify(pattern.pattern_data, null, 2)}</pre>
+              </div>
+            </div>
+          )}
+
+          {pattern.time_range_start && pattern.time_range_end && (
+            <div className="mt-3 pt-3 border-t border-gray-100">
+              <p className="text-xs text-gray-500">
+                Time range: {new Date(pattern.time_range_start).toLocaleDateString()} - {new Date(pattern.time_range_end).toLocaleDateString()}
+              </p>
+            </div>
+          )}
+
+          {pattern.expires_at && (
+            <div className="mt-2">
+              <p className="text-xs text-gray-500">
+                Expires: {new Date(pattern.expires_at).toLocaleDateString()}
+              </p>
+            </div>
+          )}
+        </div>
+      ))}
     </div>
   );
 }

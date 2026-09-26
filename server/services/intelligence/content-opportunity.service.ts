@@ -6,10 +6,17 @@
 import { Pool } from 'pg';
 import { getAIProvider } from '../ai/provider';
 import { IntelligenceRepository } from '../../repositories/intelligence.repository';
+import { ClosedLoopRepository } from '../../repositories/closed-loop.repository';
 import { Topic, TrendSignal, ContentOpportunity, SourceClaim, IntelligenceSource } from '../../models/types';
 
 export interface OpportunityScore {
   overallScore: number;
+  learningAdjustment?: {
+    adjustment: number;
+    reason: string;
+    supportingObservations: number;
+    confidence: string;
+  };
   breakdown: {
     topicRelevance: { score: number; reason: string };
     audienceRelevance: { score: number; reason: string };
@@ -26,9 +33,11 @@ export interface OpportunityScore {
 
 export class ContentOpportunityService {
   private intelligenceRepo: IntelligenceRepository;
+  private closedLoopRepo: ClosedLoopRepository;
 
   constructor(private pool: Pool) {
     this.intelligenceRepo = new IntelligenceRepository(pool);
+    this.closedLoopRepo = new ClosedLoopRepository(pool);
   }
 
   /**
@@ -210,8 +219,8 @@ export class ContentOpportunityService {
     // Confidence (based on data quality)
     breakdown.confidence.score = (signal.confidence || 0.5) * 100;
     breakdown.confidence.reason = `Signal confidence: ${((signal.confidence || 0.5) * 100).toFixed(0)}%`;
-
-    // Calculate overall score (weighted average)
+    
+    // Calculate base overall score (weighted average)
     const weights = {
       topicRelevance: 0.15,
       audienceRelevance: 0.15,
@@ -225,16 +234,75 @@ export class ContentOpportunityService {
       confidence: 0.05,
     };
 
-    const overallScore = Object.entries(breakdown).reduce((sum, [key, value]) => {
+    const baseScore = Object.entries(breakdown).reduce((sum, [key, value]) => {
       return sum + value.score * (weights[key as keyof typeof weights] || 0);
     }, 0);
 
+    // Apply learning adjustment if patterns exist
+    const learningAdjustment = await this.calculateLearningAdjustment(workspaceId, topic);
+    const overallScore = baseScore + (learningAdjustment?.adjustment || 0);
+
     return {
       overallScore: Math.round(overallScore * 100) / 100,
+      learningAdjustment,
       breakdown,
     };
   }
 
+  /**
+   * Calculate learning adjustment based on historical patterns
+   */
+  private async calculateLearningAdjustment(
+    workspaceId: string,
+    topic: Topic
+  ): Promise<OpportunityScore['learningAdjustment'] | undefined> {
+    try {
+      // Query learning patterns for this workspace
+      const patterns = await this.closedLoopRepo.getActivePatterns(workspaceId);
+      
+      if (patterns.length === 0) {
+        return undefined; // No learning data yet
+      }
+
+      // Look for topic preference patterns
+      const topicPatterns = patterns.filter(p => 
+        p.pattern_type === 'topic_preference' && 
+        p.pattern_data?.topic === topic.canonical_name
+      );
+
+      if (topicPatterns.length > 0) {
+        const pattern = topicPatterns[0];
+        const acceptanceRate = pattern.pattern_data?.acceptance_rate || 0.5;
+        const observationCount = pattern.observation_count;
+        
+        // Calculate adjustment based on acceptance rate and confidence
+        // Max adjustment: ±10 points
+        const adjustment = (acceptanceRate - 0.5) * 20;
+        
+        // Determine confidence level based on observation count
+        let confidence = 'INSUFFICIENT_DATA';
+        if (observationCount >= 10) {
+          confidence = 'STRONG_PATTERN';
+        } else if (observationCount >= 5) {
+          confidence = 'EMERGING_PATTERN';
+        } else if (observationCount >= 3) {
+          confidence = 'EARLY_SIGNAL';
+        }
+
+        return {
+          adjustment: Math.round(adjustment * 100) / 100,
+          reason: `${observationCount} historical opportunities on this topic with ${(acceptanceRate * 100).toFixed(0)}% acceptance rate`,
+          supportingObservations: observationCount,
+          confidence,
+        };
+      }
+
+      return undefined;
+    } catch (error) {
+      console.error('Failed to calculate learning adjustment:', error);
+      return undefined;
+    }
+  }
   /**
    * Generate detailed opportunity using AI
    */

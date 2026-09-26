@@ -301,4 +301,36 @@ router.get('/jobs', async (req: Request, res: Response, next: NextFunction) => {
   }
 });
 
+/**
+ * @route POST /api/v1/closed-loop/jobs/execute
+ * @desc Execute all pending jobs for workspace
+ */
+router.post('/jobs/execute', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { JobExecutor } = await import('../services/job-executor.service');
+    const jobExecutor = new JobExecutor(pool);
+    
+    const result = await jobExecutor.processPendingJobs(req.workspaceId!);
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * @route POST /api/v1/closed-loop/jobs/:id/execute
+ * @desc Execute a specific job
+ */
+router.post('/jobs/:id/execute', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { JobExecutor } = await import('../services/job-executor.service');
+    const jobExecutor = new JobExecutor(pool);
+    
+    await jobExecutor.executeJob(req.params.id);
+    res.json({ success: true });
+  } catch (error) {
+    next(error);
+  }
+});
+
 export default router;

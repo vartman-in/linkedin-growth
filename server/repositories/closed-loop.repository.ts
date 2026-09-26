@@ -400,4 +400,12 @@ export class ClosedLoopRepository {
     );
     return result.rows;
   }
+
+  async getJob(jobId: string): Promise<BackgroundJob | null> {
+    const result = await this.pool.query(
+      'SELECT * FROM background_jobs WHERE id = $1',
+      [jobId]
+    );
+    return result.rows[0] || null;
+  }
 }

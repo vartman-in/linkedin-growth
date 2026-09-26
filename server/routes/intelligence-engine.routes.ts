@@ -320,7 +320,7 @@ router.put('/opportunities/:id/status', async (req: Request, res: Response, next
  */
 router.post('/opportunities/:id/convert', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const result = await intelligenceService.convertOpportunityToIdea(req.workspaceId!, req.params.id);
+    const result = await intelligenceService.convertOpportunityToIdea(req.workspaceId!, req.params.id, req.userId);
     res.json(result);
   } catch (error) {
     next(error);

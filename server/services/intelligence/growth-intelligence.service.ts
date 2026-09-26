@@ -12,6 +12,7 @@ import { TrendSignalService } from './trend-signal.service';
 import { ContentOpportunityService } from './content-opportunity.service';
 import { ContentGapService } from './content-gap.service';
 import { IntelligenceRepository } from '../../repositories/intelligence.repository';
+import { IntelligenceFeedbackService } from './feedback.service';
 
 export class GrowthIntelligenceService {
   private sourceIngestion: SourceIngestionService;
@@ -22,6 +23,7 @@ export class GrowthIntelligenceService {
   private contentOpportunity: ContentOpportunityService;
   private contentGap: ContentGapService;
   private intelligenceRepo: IntelligenceRepository;
+  private feedbackService: IntelligenceFeedbackService;
 
   constructor(private pool: Pool) {
     this.sourceIngestion = new SourceIngestionService(pool);
@@ -32,6 +34,7 @@ export class GrowthIntelligenceService {
     this.contentOpportunity = new ContentOpportunityService(pool);
     this.contentGap = new ContentGapService(pool);
     this.intelligenceRepo = new IntelligenceRepository(pool);
+    this.feedbackService = new IntelligenceFeedbackService(pool);
   }
 
   /**
@@ -234,7 +237,8 @@ export class GrowthIntelligenceService {
    */
   async convertOpportunityToIdea(
     workspaceId: string,
-    opportunityId: string
+    opportunityId: string,
+    userId?: string
   ): Promise<{ ideaId: string; opportunity: any }> {
     const opportunity = await this.intelligenceRepo.getOpportunity(workspaceId, opportunityId);
     if (!opportunity) {
@@ -262,6 +266,14 @@ export class GrowthIntelligenceService {
     await this.intelligenceRepo.updateOpportunity(workspaceId, opportunityId, {
       status: 'CONVERTED',
     });
+
+    // Record feedback for closed-loop learning
+    await this.feedbackService.recordOpportunityConverted(
+      workspaceId,
+      opportunityId,
+      ideaId,
+      userId
+    );
 
     return { ideaId, opportunity };
   }
