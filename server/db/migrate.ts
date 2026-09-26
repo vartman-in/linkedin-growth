@@ -1,4 +1,4 @@
-import runner = require('node-pg-migrate');
+import { runner } from 'node-pg-migrate';
 import { Pool } from 'pg';
 import dotenv from 'dotenv';
 import path from 'path';
@@ -24,7 +24,7 @@ async function runMigrations() {
   try {
     console.log(`Running migrations against ${isTest ? 'TEST' : 'DEVELOPMENT'} database...`);
     
-    const migrationResults = await migrationRunner({
+    const migrationResults = await runner({
       dbClient: await pool.connect(),
       migrationsFolder: path.resolve(__dirname, 'migrations'),
       dir: 'up',

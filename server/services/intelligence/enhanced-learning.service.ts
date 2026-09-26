@@ -64,7 +64,7 @@ export class EnhancedLearningService {
         pattern.confidence,
         pattern.observation_count,
         pattern.evidence_ids,
-        pattern.time_range_start,
+        pattern.time_range_start ?? undefined,
         pattern.time_range_end,
         pattern.generated_by,
         pattern.expires_at
@@ -355,7 +355,7 @@ export class EnhancedLearningService {
         insight.confidence,
         insight.observation_count,
         insight.generated_by,
-        insight.pattern_id,
+        insight.pattern_id ?? undefined,
         insight.evidence_summary,
         insight.time_range_start,
         insight.time_range_end,
