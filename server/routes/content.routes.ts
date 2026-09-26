@@ -2,7 +2,7 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { ContentIdeaRepository } from '../repositories/content-idea.repository';
 import { ContentDraftRepository } from '../repositories/content-draft.repository';
 import { getPool } from '../config/database';
-import { validate, validateParams } from '../middleware/validation.middleware';
+import { validate } from '../middleware/validation.middleware';
 import { createContentIdeaSchema, updateContentIdeaSchema, createContentDraftSchema, updateContentDraftSchema, uuidParamSchema } from '../middleware/validation.middleware';
 import { authenticateAndSetWorkspace, requireWorkspaceAccess } from '../middleware/workspace.middleware';
 import { NotFoundError } from '../middleware/error.middleware';

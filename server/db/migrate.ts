@@ -1,4 +1,4 @@
-import { PgLiteral } from 'node-pg-migrate';
+import migrationRunner from 'node-pg-migrate';
 import { Pool } from 'pg';
 import dotenv from 'dotenv';
 import path from 'path';

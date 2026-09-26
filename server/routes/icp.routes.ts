@@ -1,7 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { ICPRepository } from '../repositories/icp.repository';
 import { getPool } from '../config/database';
-import { validate, validateParams } from '../middleware/validation.middleware';
+import { validate } from '../middleware/validation.middleware';
 import { createICPSchema, updateICPSchema, uuidParamSchema } from '../middleware/validation.middleware';
 import { authenticateAndSetWorkspace, requireWorkspaceAccess } from '../middleware/workspace.middleware';
 import { NotFoundError } from '../middleware/error.middleware';
